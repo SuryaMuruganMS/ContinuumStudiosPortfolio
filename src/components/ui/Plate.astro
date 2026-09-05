@@ -44,9 +44,6 @@ const {
   status = 'published',
   liveUrl,
 } = Astro.props;
-
-/** Shown beside the link so a reader sees where it goes before clicking. */
-const liveHost = liveUrl ? new URL(liveUrl).hostname : null;
 ---
 
 <article
@@ -95,8 +92,8 @@ const liveHost = liveUrl ? new URL(liveUrl).hostname : null;
           <span class="plate__live-arrow" aria-hidden="true">
             &#8599;
           </span>
+          <span class="visually-hidden">(opens in a new tab)</span>
         </a>
-        <span class="mono plate__live-host">{liveHost}</span>
       </p>
     )
   }
@@ -235,7 +232,9 @@ const liveHost = liveUrl ? new URL(liveUrl).hostname : null;
 
   /* The one claim on this plate a reader can check without trusting us.
      Above the stretched title link (z-index 1) so it stays independently
-     clickable, and marked with the host so nobody clicks blind. */
+     clickable. The destination is not printed beside it — the arrow says it
+     leaves, and a raw hostname beside a button is noise. Screen readers get
+     it from the visually-hidden note inside the link. */
   .plate__live {
     position: relative;
     z-index: 1;
@@ -271,14 +270,6 @@ const liveHost = liveUrl ? new URL(liveUrl).hostname : null;
   .plate__live-arrow {
     font-size: 12px;
     line-height: 1;
-  }
-  .plate__live-host {
-    font-size: 10px;
-    letter-spacing: 0.06em;
-    color: var(--ink-4);
-    /* A long host must not push the plate wider than its column. */
-    min-width: 0;
-    overflow-wrap: anywhere;
   }
   @media (hover: hover) and (pointer: fine) {
     .plate__live-link:hover {

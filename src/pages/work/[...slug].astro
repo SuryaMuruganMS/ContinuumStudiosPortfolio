@@ -20,8 +20,6 @@ const d = entry.data;
 const shots = resolveShots(d.strata);
 /** Gallery entries whose file actually exists; the section hides if none do. */
 const gallery = (d.gallery ?? []).filter((g) => optionalAsset(g.src));
-/** Named beside every live link, so nobody is asked to click an unlabelled host. */
-const liveHost = d.liveUrl ? new URL(d.liveUrl).hostname : null;
 ---
 
 <Base title={`${d.title} — Continuum Studios`} description={d.problem}>
@@ -50,8 +48,8 @@ const liveHost = d.liveUrl ? new URL(d.liveUrl).hostname : null;
               >
                 Open the live site
                 <span aria-hidden="true">&#8599;</span>
+                <span class="visually-hidden">(opens in a new tab)</span>
               </a>
-              <p class="mono case-live__note">{liveHost} &middot; opens in a new tab</p>
             </div>
           )
         }
@@ -143,6 +141,7 @@ const liveHost = d.liveUrl ? new URL(d.liveUrl).hostname : null;
           <a class="btn btn--ghost" href={d.liveUrl} target="_blank" rel="noopener noreferrer">
             Open the live site
             <span aria-hidden="true">&#8599;</span>
+            <span class="visually-hidden">(opens in a new tab)</span>
           </a>
         )
       }
@@ -178,16 +177,6 @@ const liveHost = d.liveUrl ? new URL(d.liveUrl).hostname : null;
     align-items: center;
     gap: var(--sp-snug);
   }
-  .case-live__note {
-    font-size: 10.5px;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: var(--ink-4);
-    /* A long host wraps rather than widening the header past the shell. */
-    min-width: 0;
-    overflow-wrap: anywhere;
-  }
-
   .planes {
     display: grid;
     gap: var(--sp-roomy);
