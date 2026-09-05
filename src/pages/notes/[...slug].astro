@@ -1,0 +1,104 @@
+---
+import type { GetStaticPaths } from 'astro';
+import { getCollection, render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import { STRATA } from '../../components/strata/strata';
+
+export const getStaticPaths = (async () => {
+  const notes = await getCollection('notes', ({ data }) => !data.draft);
+  return notes.map((entry) => ({ params: { slug: entry.id }, props: { entry } }));
+}) satisfies GetStaticPaths;
+
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+const meta = STRATA[entry.data.stratum];
+const fmt = new Intl.DateTimeFormat('en-GB', {
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric',
+});
+---
+
+<Base title={`${entry.data.title} — Continuum Studios`} description={entry.data.description}>
+  <article class="section" style={`--stratum: var(${meta.token})`}>
+    <div class="shell">
+      <header class="note-head stack stack--snug">
+        <p class="label note-head__topic">{entry.data.topic}</p>
+        <h1>{entry.data.title}</h1>
+        <p class="t-lede">{entry.data.description}</p>
+        <p class="note-head__date mono">
+          <time datetime={entry.data.published.toISOString()}>
+            {fmt.format(entry.data.published)}
+          </time>
+        </p>
+      </header>
+
+      <div class="prose note-body">
+        <Content />
+      </div>
+
+      <footer class="note-foot">
+        <a class="btn btn--primary" href="/commission">Commission work</a>
+        <a class="btn btn--ghost" href="/notes">All notes</a>
+      </footer>
+    </div>
+  </article>
+</Base>
+
+<style>
+  .note-head {
+    max-width: var(--measure);
+    padding-bottom: var(--sp-roomy);
+    border-bottom: 2px solid var(--stratum);
+  }
+  .note-head__topic {
+    color: var(--stratum);
+  }
+  .note-head__date {
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-4);
+  }
+  .note-body {
+    margin-top: var(--sp-loose);
+  }
+  /* Long-form reading gets its own measure and a serif at a comfortable size;
+     the global .prose rules handle spacing. */
+  .note-body :global(h2) {
+    font-size: var(--t-h3);
+    margin-top: var(--sp-loose);
+  }
+  .note-body :global(pre) {
+    background: var(--surface);
+    border: var(--border-hair);
+    border-left: 2px solid var(--stratum);
+    padding: var(--sp-base);
+    overflow-x: auto;
+    font-family: var(--f-mono);
+    font-size: 12.5px;
+    line-height: 1.6;
+  }
+  .note-body :global(code) {
+    font-family: var(--f-mono);
+    font-size: 0.86em;
+  }
+  .note-body :global(pre code) {
+    font-size: inherit;
+  }
+  .note-body :global(ul),
+  .note-body :global(ol) {
+    padding-left: 1.2rem;
+  }
+  .note-body :global(li) {
+    margin-bottom: var(--sp-tight);
+  }
+  .note-foot {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sp-snug);
+    margin-top: var(--sp-loose);
+    padding-top: var(--sp-base);
+    border-top: var(--border-hair);
+  }
+</style>

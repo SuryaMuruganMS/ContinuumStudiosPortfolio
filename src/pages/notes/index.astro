@@ -1,0 +1,142 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import { STRATA } from '../../components/strata/strata';
+
+const notes = (await getCollection('notes', ({ data }) => !data.draft)).sort(
+  (a, b) => b.data.published.getTime() - a.data.published.getTime(),
+);
+
+const fmt = new Intl.DateTimeFormat('en-GB', {
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric',
+});
+const topics = [...new Set(notes.map((n) => n.data.topic))].sort();
+---
+
+<Base
+  title="Notes — Continuum Studios"
+  description="Long-form writing on commissioning, design and the engineering underneath it."
+>
+  <section class="section">
+    <div class="shell stack stack--loose">
+      <header class="stack stack--tight">
+        <p class="label">Notes</p>
+        <h1>Writing</h1>
+        <p class="t-lede">
+          The parts worth explaining at length. This is also the only surface here that ranks
+          for what people actually search.
+        </p>
+      </header>
+
+      {
+        topics.length > 0 && (
+          <div class="topics">
+            {topics.map((t) => (
+              <span class="topic mono">{t}</span>
+            ))}
+          </div>
+        )
+      }
+
+      {
+        notes.length ? (
+          <ol class="notes" role="list">
+            {notes.map((note) => {
+              const meta = STRATA[note.data.stratum];
+              return (
+                <li class="note" style={`--stratum: var(${meta.token})`}>
+                  <a class="note__link" href={`/notes/${note.id}`}>
+                    <span class="note__meta mono">
+                      <time datetime={note.data.published.toISOString()}>
+                        {fmt.format(note.data.published)}
+                      </time>
+                      <span class="note__topic">{note.data.topic}</span>
+                    </span>
+                    <span class="note__title">{note.data.title}</span>
+                    <span class="note__desc">{note.data.description}</span>
+                  </a>
+                </li>
+              );
+            })}
+          </ol>
+        ) : (
+          <div class="state">
+            <p class="state__title">Nothing published yet</p>
+            <p>
+              Notes live in <code>src/content/notes/</code>.
+            </p>
+          </div>
+        )
+      }
+    </div>
+  </section>
+</Base>
+
+<style>
+  .topics {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sp-hair);
+  }
+  .topic {
+    font-size: 10.5px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    padding: 4px 9px;
+    border: var(--border-hair);
+  }
+
+  .notes {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border-top: var(--border-hair);
+  }
+  .note {
+    border-bottom: var(--border-hair);
+  }
+  .note__link {
+    display: grid;
+    gap: var(--sp-tight);
+    padding: var(--sp-roomy) 0 var(--sp-roomy) var(--sp-base);
+    border-left: 2px solid transparent;
+    color: var(--ink);
+    text-decoration: none;
+    transition: border-color var(--d-hover) var(--ease-out);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .note__link:hover {
+      border-left-color: var(--stratum);
+    }
+    .note__link:hover .note__title {
+      color: var(--accent);
+    }
+  }
+  .note__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sp-snug);
+    font-size: 10.5px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-4);
+  }
+  .note__topic {
+    color: var(--stratum);
+  }
+  .note__title {
+    font-family: var(--f-display);
+    font-size: var(--t-h3);
+    font-weight: 600;
+    letter-spacing: var(--tr-h3);
+    transition: color var(--d-hover) var(--ease-out);
+  }
+  .note__desc {
+    font-size: var(--t-small);
+    color: var(--ink-3);
+    max-width: 62ch;
+  }
+</style>

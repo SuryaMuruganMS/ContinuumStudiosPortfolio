@@ -1,0 +1,85 @@
+---
+import Base from '../layouts/Base.astro';
+import { STRATA } from '../components/strata/strata';
+
+/**
+ * The error page shows its own strata — the joke and the proof in one.
+ */
+const LAYERS = ['structure', 'type', 'colour'] as const;
+---
+
+<Base title="Not found — Continuum Studios" description="That page does not exist." noindex={true}>
+  <section class="section">
+    <div class="shell stack stack--loose">
+      <header class="stack stack--tight">
+        <p class="label">404</p>
+        <h1>This page deconstructs into nothing.</h1>
+        <p class="t-lede">
+          The URL does not exist. Here is the error page taken apart anyway, since that is what
+          we do.
+        </p>
+      </header>
+
+      <div class="err-strata">
+        {
+          LAYERS.map((id, i) => {
+            const meta = STRATA[id];
+            return (
+              <div class="err-layer" style={`--stratum: var(${meta.token})`}>
+                <span class="mono err-layer__no">{String(i + 1).padStart(2, '0')}</span>
+                <span class="mono err-layer__name">{meta.name}</span>
+                <span class="err-layer__shows">{meta.shows}</span>
+              </div>
+            );
+          })
+        }
+      </div>
+
+      <div class="row">
+        <a class="btn btn--primary" href="/">Back to the index</a>
+        <a class="btn btn--ghost" href="/work">See the work</a>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .err-strata {
+    display: grid;
+    gap: 1px;
+    background: var(--rule);
+    border: var(--border-hair);
+    max-width: 62rem;
+  }
+  .err-layer {
+    display: grid;
+    grid-template-columns: 30px 100px minmax(0, 1fr);
+    gap: var(--sp-snug);
+    align-items: baseline;
+    padding: var(--sp-base);
+    background: var(--ground);
+    border-left: 2px solid var(--stratum);
+  }
+  .err-layer__no {
+    font-size: 10px;
+    color: var(--ink-4);
+  }
+  .err-layer__name {
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--stratum);
+  }
+  .err-layer__shows {
+    font-size: var(--t-small);
+    color: var(--ink-2);
+  }
+  @media (max-width: 560px) {
+    .err-layer {
+      grid-template-columns: 30px minmax(0, 1fr);
+    }
+    .err-layer__shows {
+      grid-column: 2;
+    }
+  }
+</style>

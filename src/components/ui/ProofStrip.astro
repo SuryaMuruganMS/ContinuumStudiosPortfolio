@@ -1,0 +1,98 @@
+---
+/**
+ * Three or four dated, specific figures — never "50+ happy clients".
+ *
+ * Rule from the specification: if a number cannot be linked to evidence, it
+ * does not go here. An unverifiable metric on a page whose thesis is
+ * transparency is self-defeating.
+ */
+interface Proof {
+  value: string;
+  label: string;
+  source: string;
+  href?: string;
+}
+
+interface Props {
+  items: Proof[];
+}
+const { items } = Astro.props;
+---
+
+<div class="proof">
+  <dl class="proof__grid">
+    {
+      items.map((p) => (
+        <div class="proof__item">
+          <dt class="proof__label">{p.label}</dt>
+          <dd class="proof__value mono">{p.value}</dd>
+          <dd class="proof__source">{p.href ? <a href={p.href}>{p.source}</a> : p.source}</dd>
+        </div>
+      ))
+    }
+  </dl>
+</div>
+
+<style>
+  .proof {
+    border-block: var(--border-hair);
+  }
+  .proof__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 0;
+    margin: 0;
+  }
+  /* Each cell is separated by a rule on its right, so every cell after the
+     first needs padding on its LEFT to clear the rule of the cell before it.
+     Previously padding-left was 0 across the board, which left columns two and
+     three with their text jammed against the divider and 16px of air on the
+     far side — the asymmetry read as broken margins.
+
+     The outer edges stay flush so the strip lines up with the page margin and
+     with the hero above it. */
+  .proof__item {
+    padding: var(--sp-roomy);
+    border-right: var(--border-hair);
+  }
+  .proof__item:first-child {
+    padding-left: 0;
+  }
+  .proof__item:last-child {
+    padding-right: 0;
+    border-right: 0;
+  }
+  .proof__label {
+    font-family: var(--f-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-4);
+  }
+  .proof__value {
+    margin: var(--sp-tight) 0 2px;
+    font-family: var(--f-display);
+    font-size: clamp(1.4rem, 2.6vw, 2rem);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    color: var(--ink);
+  }
+  .proof__source {
+    margin: 0;
+    font-size: 12px;
+    color: var(--ink-3);
+  }
+
+  /* Stacked, the rules run horizontally instead, so the horizontal padding
+     that cleared a vertical rule is no longer doing anything. */
+  @media (max-width: 620px) {
+    .proof__item {
+      border-right: 0;
+      border-bottom: var(--border-hair);
+      padding: var(--sp-base) 0;
+    }
+    .proof__item:last-child {
+      border-bottom: 0;
+    }
+  }
+</style>

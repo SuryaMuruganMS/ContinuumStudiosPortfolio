@@ -1,0 +1,24 @@
+---
+import Base from '../../layouts/Base.astro';
+import Desk from '../../components/commission/Desk.svelte';
+---
+
+<Base
+  title="Commission — Continuum Studios"
+  description="Four questions, and you leave with a real one-page project brief you can use with anyone."
+>
+  <section class="section">
+    <div class="shell stack stack--loose">
+      <header class="stack stack--tight">
+        <p class="label">Commission Desk</p>
+        <h1>Four questions.</h1>
+        <p class="t-lede">
+          At the end you get a one-page brief — objective, scope, exclusions, assumptions, the
+          two largest risks and an honest range. It is yours whether or not you hire us.
+        </p>
+      </header>
+
+      <Desk client:load />
+    </div>
+  </section>
+</Base>

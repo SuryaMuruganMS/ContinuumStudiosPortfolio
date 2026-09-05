@@ -1,0 +1,495 @@
+---
+import Base from '../layouts/Base.astro';
+import Vitals from '../components/machine/Vitals.svelte';
+import { STRATA } from '../components/strata/strata';
+import { SITE } from '../lib/site';
+
+/**
+ * Development verification route. Deliberately not a public-facing page:
+ * unstyled sections, visible token names, no narrative. It exists to prove
+ * every token and state renders correctly in both themes before any component
+ * consumes them (Specification, Milestone 1).
+ */
+const TYPE_STEPS = [
+  { token: '--t-hero', cls: 't-hero', label: 'Hero' },
+  { token: '--t-h1', tag: 'h1', label: 'H1' },
+  { token: '--t-h2', tag: 'h2', label: 'H2' },
+  { token: '--t-h3', tag: 'h3', label: 'H3' },
+  { token: '--t-lede', cls: 't-lede', label: 'Lede' },
+  { token: '--t-body', cls: '', label: 'Body' },
+  { token: '--t-small', cls: 't-small', label: 'Small' },
+  { token: '--t-label', cls: 'label', label: 'Label' },
+];
+
+const INK = ['--ink', '--ink-2', '--ink-3', '--ink-4'];
+const GROUNDS = ['--ground', '--ground-2', '--surface'];
+const RULES = ['--rule', '--rule-live'];
+const ACCENTS = ['--accent', '--accent-deep', '--accent-soft'];
+const SEMANTIC = ['--ok', '--warn', '--bad'];
+const SPACE = [
+  '--sp-hair',
+  '--sp-tight',
+  '--sp-snug',
+  '--sp-base',
+  '--sp-roomy',
+  '--sp-loose',
+  '--sp-sect',
+  '--sp-pivot',
+];
+const CURVES = ['--ease-out', '--ease-io', '--ease-lin'];
+const DURATIONS = ['--d-press', '--d-hover', '--d-ui', '--d-page', '--d-strat', '--d-reveal'];
+---
+
+<Base
+  title="Kitchen sink — Continuum Studios"
+  description="Development route. Every token and state, in both themes."
+  noindex={true}
+>
+  <div class="ks">
+    <header class="ks__head">
+      <h1 class="ks__title">Kitchen sink</h1>
+      <p class="ks__note">
+        Verification route. Not public. Toggle the theme to check every token resolves in all
+        three states — explicit light, explicit dark, and OS default.
+      </p>
+      <div class="ks__themes">
+        <button class="btn" data-theme-set="light">Force light</button>
+        <button class="btn" data-theme-set="dark">Force dark</button>
+        <button class="btn" data-theme-set="system">Follow system</button>
+        <span class="mono ks__current" id="ks-current">system</span>
+      </div>
+    </header>
+
+    <!-- ------------------------------------------------------------ type -->
+    <section class="ks__sec">
+      <h2 class="ks__h">Type scale</h2>
+      {
+        TYPE_STEPS.map((s) => (
+          <div class="ks__typerow">
+            <code class="ks__tok">{s.token}</code>
+            {s.tag === 'h1' && <h1>Every decision, visible</h1>}
+            {s.tag === 'h2' && <h2>Every decision, visible</h2>}
+            {s.tag === 'h3' && <h3>Every decision, visible</h3>}
+            {!s.tag && <p class={s.cls}>Every decision, visible</p>}
+          </div>
+        ))
+      }
+      <div class="ks__typerow">
+        <code class="ks__tok">measure 68ch</code>
+        <p style="max-width: var(--measure)">
+          Reading measure never exceeds 68 characters. This paragraph is set at the maximum so
+          the line length can be checked against the body face at its real size, which is the
+          only way to judge whether the measure is right.
+        </p>
+      </div>
+    </section>
+
+    <!-- ---------------------------------------------------------- colour -->
+    <section class="ks__sec">
+      <h2 class="ks__h">Colour — ground and ink</h2>
+      <div class="ks__swatches">
+        {
+          GROUNDS.map((t) => (
+            <div class="sw" style={`--sw: var(${t})`}>
+              <span class="mono">{t}</span>
+            </div>
+          ))
+        }
+        {
+          INK.map((t) => (
+            <div class="sw" style={`--sw: var(${t})`}>
+              <span class="mono">{t}</span>
+            </div>
+          ))
+        }
+        {
+          RULES.map((t) => (
+            <div class="sw" style={`--sw: var(${t})`}>
+              <span class="mono">{t}</span>
+            </div>
+          ))
+        }
+        {
+          ACCENTS.map((t) => (
+            <div class="sw" style={`--sw: var(${t})`}>
+              <span class="mono">{t}</span>
+            </div>
+          ))
+        }
+        {
+          SEMANTIC.map((t) => (
+            <div class="sw" style={`--sw: var(${t})`}>
+              <span class="mono">{t}</span>
+            </div>
+          ))
+        }
+      </div>
+
+      <h2 class="ks__h">The stratum index — functional colour</h2>
+      <p class="ks__note">
+        Each layer owns a hue. These are indices, not text colours — none is approved for body
+        text without a contrast check.
+      </p>
+      <div class="ks__strata">
+        {
+          Object.values(STRATA).map((s) => (
+            <div class="stratum-chip" style={`--stratum: var(${s.token})`}>
+              <span class="stratum-chip__bar" />
+              <span class="mono stratum-chip__name">{s.name}</span>
+              <span class="mono stratum-chip__tok">{s.token}</span>
+              <span class="stratum-chip__shows">{s.shows}</span>
+            </div>
+          ))
+        }
+      </div>
+    </section>
+
+    <!-- ---------------------------------------------------------- spacing -->
+    <section class="ks__sec">
+      <h2 class="ks__h">Spacing scale</h2>
+      <div class="ks__space">
+        {
+          SPACE.map((t) => (
+            <div class="sp-row">
+              <code class="ks__tok">{t}</code>
+              <span class="sp-bar" style={`width: var(${t})`} />
+            </div>
+          ))
+        }
+      </div>
+    </section>
+
+    <!-- ---------------------------------------------------------- controls -->
+    <section class="ks__sec">
+      <h2 class="ks__h">Buttons and links</h2>
+      <div class="ks__row">
+        <button class="btn btn--primary">Primary</button>
+        <button class="btn">Default</button>
+        <button class="btn btn--ghost">Ghost</button>
+        <button class="btn btn--primary" disabled>Disabled</button>
+      </div>
+      <p class="ks__note">Tab through these to verify the focus ring on every variant.</p>
+      <div class="ks__row">
+        <a href="#top">Standard link</a>
+        <a href="#top" class="link-quiet">Quiet link</a>
+      </div>
+    </section>
+
+    <!-- ------------------------------------------------------------ forms -->
+    <section class="ks__sec">
+      <h2 class="ks__h">Form controls and error state</h2>
+      <div class="ks__forms">
+        <div>
+          <label class="field-label" for="ks-a">Normal</label>
+          <input class="field" id="ks-a" placeholder="you@company.com" />
+        </div>
+        <div>
+          <label class="field-label" for="ks-b">Invalid</label>
+          <input
+            class="field"
+            id="ks-b"
+            aria-invalid="true"
+            value="not-an-email"
+            aria-describedby="ks-b-e"
+          />
+          <p class="field-error" id="ks-b-e">Enter an email address we can reply to.</p>
+        </div>
+        <div>
+          <label class="field-label" for="ks-c">Range (the scrubber control)</label>
+          <input type="range" id="ks-c" min="0" max="6" value="3" />
+        </div>
+      </div>
+    </section>
+
+    <!-- ----------------------------------------------------------- states -->
+    <section class="ks__sec">
+      <h2 class="ks__h">Loading, empty and error states</h2>
+      <div class="ks__states">
+        <div class="stack stack--tight">
+          <p class="label">Loading — skeleton</p>
+          <div class="skeleton" style="height: 18px; width: 70%"></div>
+          <div class="skeleton" style="height: 18px; width: 90%"></div>
+          <div class="skeleton" style="height: 140px"></div>
+        </div>
+        <div class="state">
+          <p class="state__title">No projects yet</p>
+          <p>Projects live in <code>src/content/work/</code>.</p>
+          <a class="btn" href="/work">Go to work</a>
+        </div>
+        <div class="state state--error">
+          <p class="state__title">That did not send</p>
+          <p>Email {SITE.email} and we will pick it up.</p>
+          <button class="btn">Try again</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ------------------------------------------------------- annotation -->
+    <section class="ks__sec">
+      <h2 class="ks__h">Annotation rail</h2>
+      <p class="ks__note">
+        The site's actual product. Each one names a constraint, a measurement, a decision and a
+        consequence — generic captions fail the standard.
+      </p>
+      <div class="ks__annos">
+        <div class="annotation" style="--stratum: var(--s-colour)">
+          <div class="annotation__eyebrow">04 · Colour</div>
+          <p class="annotation__body">
+            The client's brand red measured 2.9:1 against their own ground. We kept the hue and
+            moved the lightness until it cleared 4.5:1, which changed nothing anyone recognised
+            and made the whole interface legible.
+          </p>
+        </div>
+        <div class="annotation" style="--stratum: var(--s-load)">
+          <div class="annotation__eyebrow">06 · Load</div>
+          <p class="annotation__body">
+            Results stream rather than batch. First paint at 300 ms with three results beats 900
+            ms with twenty, because the reader starts scanning immediately.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ------------------------------------------------------------ table -->
+    <section class="ks__sec">
+      <h2 class="ks__h">Table</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">Measure</th><th scope="col">Before</th>
+              <th scope="col">After</th><th scope="col">Source</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              ><td>Time to first relevant result</td><td>4m 20s</td><td><b>18s</b></td><td
+                >Client analytics, Mar 2026</td
+              ></tr
+            >
+            <tr><td>LCP</td><td>3.8 s</td><td><b>0.9 s</b></td><td>WebPageTest, Slow 4G</td></tr
+            >
+            <tr
+              ><td>Transfer, index route</td><td>2.4 MB</td><td><b>318 KB</b></td><td
+                >Build output</td
+              ></tr
+            >
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ------------------------------------------------------------ motion -->
+    <section class="ks__sec">
+      <h2 class="ks__h">Motion — curves and durations</h2>
+      <div class="ks__row">
+        {CURVES.map((c) => <code class="ks__tok">{c}</code>)}
+      </div>
+      <div class="ks__row">
+        {DURATIONS.map((d) => <code class="ks__tok">{d}</code>)}
+      </div>
+      <p class="ks__note">
+        Three curves, six durations. Hover the plate to check the lift; press a button to check
+        the 0.96 scale. Turn on reduced motion and both should stop.
+      </p>
+      <div class="ks__lift lift">Hover me — lift</div>
+    </section>
+
+    <!-- ------------------------------------------------------------ vitals -->
+    <section class="ks__sec">
+      <h2 class="ks__h">Machine Room readout</h2>
+      <Vitals client:load />
+    </section>
+  </div>
+</Base>
+
+<script>
+  // Theme forcing, for verification only. Writes the stamp the tokens read.
+  const label = document.getElementById('ks-current');
+  document.querySelectorAll<HTMLButtonElement>('[data-theme-set]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const mode = btn.dataset.themeSet;
+      if (mode === 'system') {
+        document.documentElement.removeAttribute('data-theme');
+      } else if (mode) {
+        document.documentElement.setAttribute('data-theme', mode);
+      }
+      if (label) label.textContent = mode ?? 'system';
+    });
+  });
+</script>
+
+<style>
+  .ks {
+    max-width: 1100px;
+    margin-inline: auto;
+    padding: var(--sp-loose) var(--margin) var(--sp-sect);
+  }
+  .ks__head {
+    padding-bottom: var(--sp-roomy);
+    border-bottom: 1px solid var(--ink);
+  }
+  .ks__title {
+    font-size: var(--t-h2);
+  }
+  .ks__note {
+    font-size: var(--t-small);
+    color: var(--ink-3);
+    max-width: 62ch;
+    margin-top: var(--sp-tight);
+  }
+  .ks__themes {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--sp-tight);
+    margin-top: var(--sp-base);
+  }
+  .ks__current {
+    font-size: 11px;
+    color: var(--ink-4);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  .ks__sec {
+    padding-block: var(--sp-loose);
+    border-bottom: var(--border-hair);
+  }
+  .ks__h {
+    font-family: var(--f-mono);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: var(--sp-base);
+  }
+  .ks__tok {
+    font-family: var(--f-mono);
+    font-size: 10.5px;
+    color: var(--ink-4);
+    background: var(--ground-2);
+    padding: 2px 6px;
+  }
+  .ks__typerow {
+    display: grid;
+    grid-template-columns: 130px minmax(0, 1fr);
+    gap: var(--sp-base);
+    align-items: baseline;
+    padding-block: var(--sp-snug);
+    border-top: var(--border-hair);
+  }
+  .ks__row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sp-snug);
+    align-items: center;
+    margin-bottom: var(--sp-snug);
+  }
+
+  .ks__swatches {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 1px;
+    background: var(--rule);
+    border: var(--border-hair);
+  }
+  .sw {
+    background: var(--ground);
+    padding: var(--sp-snug);
+    display: flex;
+    align-items: center;
+    gap: var(--sp-tight);
+  }
+  .sw::before {
+    content: '';
+    width: 26px;
+    height: 26px;
+    background: var(--sw);
+    border: 1px solid var(--rule);
+    flex: none;
+  }
+  .sw span {
+    font-size: 10px;
+    color: var(--ink-3);
+  }
+
+  .ks__strata {
+    display: grid;
+    gap: 1px;
+    background: var(--rule);
+    border: var(--border-hair);
+  }
+  .stratum-chip {
+    display: grid;
+    grid-template-columns: 4px 90px 110px minmax(0, 1fr);
+    gap: var(--sp-snug);
+    align-items: center;
+    background: var(--ground);
+    padding: var(--sp-snug) var(--sp-snug) var(--sp-snug) 0;
+  }
+  .stratum-chip__bar {
+    align-self: stretch;
+    background: var(--stratum);
+  }
+  .stratum-chip__name {
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink);
+  }
+  .stratum-chip__tok {
+    font-size: 10px;
+    color: var(--ink-4);
+  }
+  .stratum-chip__shows {
+    font-size: 13px;
+    color: var(--ink-2);
+  }
+
+  .ks__space {
+    display: grid;
+    gap: var(--sp-tight);
+  }
+  .sp-row {
+    display: grid;
+    grid-template-columns: 110px minmax(0, 1fr);
+    gap: var(--sp-base);
+    align-items: center;
+  }
+  .sp-bar {
+    height: 12px;
+    background: var(--accent);
+    display: block;
+  }
+
+  .ks__forms {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: var(--sp-base);
+    align-items: start;
+  }
+  .ks__states {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: var(--sp-base);
+    align-items: start;
+  }
+  .ks__annos {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: var(--sp-roomy);
+  }
+  .ks__lift {
+    border: var(--border-hair);
+    padding: var(--sp-roomy);
+    background: var(--ground-2);
+    font-family: var(--f-mono);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--ink-3);
+    max-width: 260px;
+  }
+</style>

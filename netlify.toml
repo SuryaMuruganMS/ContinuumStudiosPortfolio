@@ -1,0 +1,11 @@
+# Continuum Studios — Astro static output.
+#
+# The commission endpoint is a Cloudflare Pages Function. On Netlify it would
+# need porting to a Netlify Function; on Cloudflare Pages it works as-is, which
+# is why Cloudflare is the recommended host for this one.
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "22"

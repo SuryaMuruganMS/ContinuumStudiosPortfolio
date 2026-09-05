@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /kitchen-sink
+
+Sitemap: https://continuumstudios.co/sitemap-index.xml

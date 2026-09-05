@@ -1,0 +1,57 @@
+/* ===========================================================================
+   STRATA — FONTS
+   ---------------------------------------------------------------------------
+   Self-hosted and subset. These @font-face rules replace the Fontsource CSS
+   imports, which pulled every subset the packages ship (Latin, Latin-ext,
+   Cyrillic, Greek, Vietnamese) and came to 448 KB against a 110 KB budget.
+
+   The files in public/fonts/ are produced by `npm run fonts`
+   (scripts/subset-fonts.py) — Latin plus the punctuation this design actually
+   sets, at 102.8 KB total.
+
+   Two variable faces and two static mono cuts, deliberately:
+     - Display and body are variable, so the whole weight axis is one request
+       instead of three static files.
+     - Mono is used at exactly two weights (500 for labels, 600 for table
+       headers), so two static cuts are smaller than one variable axis.
+   =========================================================================== */
+
+/* ------------------------------------------------------ display: Bricolage */
+@font-face {
+  font-family: 'Bricolage Grotesque Variable';
+  font-style: normal;
+  font-weight: 200 800;
+  font-display: swap;
+  src: url('/fonts/bricolage-grotesque-var.woff2') format('woff2-variations');
+}
+
+/* --------------------------------------------------------- body: Newsreader */
+@font-face {
+  font-family: 'Newsreader Variable';
+  font-style: normal;
+  font-weight: 200 800;
+  font-display: swap;
+  src: url('/fonts/newsreader-var.woff2') format('woff2-variations');
+}
+
+/* ----------------------------------------------------- utility: Plex Mono */
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/ibm-plex-mono-400.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('/fonts/ibm-plex-mono-600.woff2') format('woff2');
+}
+
+/* The design calls for mono at 500. Synthesising it from 400 would be a
+   different weight than intended, so the 500 declarations in base.css resolve
+   to 400 here rather than pulling a third file for a barely-visible
+   difference. Recorded so it is a decision, not a mistake. */

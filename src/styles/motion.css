@@ -1,0 +1,193 @@
+/* ===========================================================================
+   STRATA — MOTION
+   ---------------------------------------------------------------------------
+   Motion has one job on this site: make the layers legible as layers.
+   Everything else is restrained to near-invisibility.
+
+   Rules enforced here (Specification, Phase 4):
+     - transform and opacity only; clip-path is the one sanctioned exception
+     - never `transition: all`
+     - never ease-in on UI
+     - UI motion under 300ms; the stratum cross-fade is content, not UI
+     - hover motion gated on (hover: hover) and (pointer: fine)
+     - press is always scale(0.96)
+     - transitions, not keyframes, for anything re-triggerable
+   =========================================================================== */
+
+/* --------------------------------------------------------------- reveal
+   Scroll-triggered entrance. The hidden state is scoped to [data-reveal-root],
+   which the reveal script stamps at runtime — so if the script never runs,
+   nothing is hidden and the content is simply visible. A page that hides its
+   own content behind JavaScript that might not execute is a broken page. */
+.reveal {
+  opacity: 1;
+  transform: none;
+}
+
+[data-reveal-root] .reveal {
+  opacity: 0;
+  transform: translate3d(0, 18px, 0);
+  transition:
+    opacity var(--d-reveal) var(--ease-out),
+    transform var(--d-reveal) var(--ease-out);
+}
+
+[data-reveal-root] .reveal.is-seen {
+  opacity: 1;
+  transform: none;
+}
+
+/* Stagger inside a group. 40-80ms is the readable range; beyond that the
+   sequence reads as a delay rather than as choreography. */
+[data-reveal-root] .reveal[data-i='1'] {
+  transition-delay: 40ms;
+}
+[data-reveal-root] .reveal[data-i='2'] {
+  transition-delay: 80ms;
+}
+[data-reveal-root] .reveal[data-i='3'] {
+  transition-delay: 120ms;
+}
+[data-reveal-root] .reveal[data-i='4'] {
+  transition-delay: 160ms;
+}
+[data-reveal-root] .reveal[data-i='5'] {
+  transition-delay: 200ms;
+}
+
+/* ------------------------------------------------------------- press feel
+   Applied to anything clickable. A transition, not a keyframe, so a rapid
+   double-click retargets from the current value instead of restarting. */
+.press {
+  transition: transform var(--d-press) var(--ease-out);
+}
+.press:active:not(:disabled) {
+  transform: scale(0.96);
+}
+
+/* ------------------------------------------------------------------ lift
+   The standard plate hover. Y-translate and edge only — depth in this system
+   is drawn, so a shadow growing on hover would contradict it. */
+.lift {
+  transition:
+    transform var(--d-hover) var(--ease-out),
+    border-color var(--d-hover) var(--ease-out);
+}
+@media (hover: hover) and (pointer: fine) {
+  .lift:hover {
+    transform: translate3d(0, -3px, 0);
+    border-color: var(--rule-live);
+  }
+}
+
+/* -------------------------------------------------------- the stratum wipe
+   The signature transition. A layer arrives behind a travelling edge carrying
+   the incoming stratum's hue. clip-path is the sanctioned fourth animatable
+   property — there is no transform equivalent for a directional reveal that
+   does not move the content itself. */
+.stratum-plane {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  clip-path: inset(0 100% 0 0);
+  transition:
+    opacity var(--d-strat) var(--ease-out),
+    clip-path var(--d-strat) var(--ease-io);
+  will-change: clip-path, opacity;
+}
+
+.stratum-plane.is-current {
+  opacity: 1;
+  clip-path: inset(0 0 0 0);
+}
+
+/* The outgoing layer sits behind at low opacity so the wipe reads as one
+   layer being drawn over another, not as a hard cut. */
+.stratum-plane.is-previous {
+  opacity: 0.4;
+  clip-path: inset(0 0 0 0);
+}
+
+.stratum-edge {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--stratum, var(--accent));
+  opacity: 0;
+  transition: opacity var(--d-ui) var(--ease-out);
+  pointer-events: none;
+}
+.is-scrubbing .stratum-edge {
+  opacity: 1;
+}
+
+/* ---------------------------------------------------------------- page in
+   One orchestrated load sequence on the index, once. Nothing repeats it. */
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 14px, 0);
+  }
+}
+
+@keyframes draw-down {
+  from {
+    transform: scaleY(0);
+  }
+}
+
+.enter-rise {
+  animation: rise-in var(--d-reveal) var(--ease-out) both;
+}
+.enter-rail {
+  transform-origin: top;
+  animation: draw-down 240ms var(--ease-out) both;
+}
+
+/* ================================================================ reduced
+   Fewer and gentler, not zero. Colour and opacity survive; every position
+   change is removed. The deconstruction stays fully usable — it becomes a set
+   of discrete states, which is arguably clearer.
+   ============================================================================ */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  /* Reveals resolve immediately rather than never. */
+  [data-reveal-root] .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
+  /* Strata cross-fade on opacity alone, no wipe. */
+  .stratum-plane {
+    clip-path: none;
+    transition: opacity 120ms linear !important;
+    will-change: auto;
+  }
+  .stratum-plane.is-previous {
+    opacity: 0;
+  }
+
+  .lift:hover,
+  .press:active {
+    transform: none;
+  }
+
+  .skeleton {
+    animation: none;
+    background: var(--ground-2);
+  }
+}

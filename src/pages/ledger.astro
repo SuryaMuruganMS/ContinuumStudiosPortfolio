@@ -1,0 +1,87 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../layouts/Base.astro';
+
+const entries = (await getCollection('ledger')).sort(
+  (a, b) => b.data.date.getTime() - a.data.date.getTime(),
+);
+
+const fmt = new Intl.DateTimeFormat('en-GB', {
+  year: 'numeric',
+  month: 'short',
+  day: '2-digit',
+});
+---
+
+<Base
+  title="Ledger — Continuum Studios"
+  description="A dated, append-only record of what shipped, including what went wrong."
+>
+  <section class="section">
+    <div class="shell stack stack--loose">
+      <header class="stack stack--tight">
+        <p class="label">Ledger</p>
+        <h1>What shipped, and when</h1>
+        <p class="t-lede">
+          Append-only. Including the entries that went badly — a ledger with no failures is
+          marketing, and a reader can tell instantly.
+        </p>
+      </header>
+
+      {
+        entries.length ? (
+          <div class="table-wrap">
+            <table>
+              <caption class="visually-hidden">Shipped work by date</caption>
+              <thead>
+                <tr>
+                  <th scope="col">Date</th>
+                  <th scope="col">Project</th>
+                  <th scope="col">Shipped</th>
+                  <th scope="col">Note</th>
+                </tr>
+              </thead>
+              <tbody>
+                {entries.map((e) => (
+                  <tr data-outcome={e.data.outcome}>
+                    <td>
+                      <time datetime={e.data.date.toISOString()}>
+                        {fmt.format(e.data.date)}
+                      </time>
+                    </td>
+                    <td>
+                      <b>{e.data.project}</b>
+                    </td>
+                    <td>{e.data.shipped}</td>
+                    <td>{e.data.note}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <div class="state">
+            <p class="state__title">No entries yet</p>
+            <p>
+              Entries live in <code>src/content/ledger/</code>.
+            </p>
+          </div>
+        )
+      }
+    </div>
+  </section>
+</Base>
+
+<style>
+  /* Outcome is encoded in form as well as colour — a left rule, so it survives
+     a colour-blind reading and a monochrome print. */
+  tr[data-outcome='shipped'] td:first-child {
+    box-shadow: inset 3px 0 0 var(--ok);
+  }
+  tr[data-outcome='learned'] td:first-child {
+    box-shadow: inset 3px 0 0 var(--warn);
+  }
+  tr[data-outcome='failed'] td:first-child {
+    box-shadow: inset 3px 0 0 var(--bad);
+  }
+</style>

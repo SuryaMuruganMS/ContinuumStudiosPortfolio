@@ -1,0 +1,253 @@
+---
+import Shot from './Shot.astro';
+import { STRATA, type StratumId } from '../strata/strata';
+
+/**
+ * A work plate on the index or the work index.
+ *
+ * Composition is deliberately uneven across a set of these — full-bleed, then
+ * inset, then full-bleed — because uniform section rhythm is the strongest
+ * template signal at page level.
+ *
+ * The whole plate is not a wrapping anchor: the stratum chips inside are real
+ * buttons, and nesting interactive elements inside an anchor is invalid and
+ * breaks keyboard order. A stretched pseudo-element on the title link covers
+ * the plate instead.
+ */
+interface Props {
+  href: string;
+  title: string;
+  client: string;
+  year: number;
+  problem: string;
+  disciplines: string[];
+  strata: StratumId[];
+  width?: 'bleed' | 'inset';
+  /** Optional cover screenshot. Omitted when none has been supplied. */
+  cover?: string;
+  /** A project still being built says so rather than looking finished. */
+  status?: 'published' | 'in-progress';
+}
+
+const {
+  href,
+  title,
+  client,
+  year,
+  problem,
+  disciplines,
+  strata,
+  width = 'bleed',
+  cover,
+  status = 'published',
+} = Astro.props;
+---
+
+<article
+  class:list={[
+    'plate',
+    `plate--${width}`,
+    { 'has-cover': cover, 'is-pending': status === 'in-progress' },
+    'lift',
+  ]}
+>
+  {
+    cover && (
+      <div class="plate__cover">
+        <Shot src={cover} alt={`${title} — product screenshot`} label={title} ratio="16 / 9" />
+      </div>
+    )
+  }
+
+  <div class="plate__meta">
+    <span class="mono plate__client">{client}</span>
+    {
+      status === 'in-progress' ? (
+        <span class="mono plate__pending">In progress · {year}</span>
+      ) : (
+        <span class="mono plate__year">{year}</span>
+      )
+    }
+  </div>
+
+  <h3 class="plate__title">
+    <a href={href} class="plate__link">{title}</a>
+  </h3>
+
+  <p class="plate__problem">{problem}</p>
+
+  <ul class="plate__disciplines" role="list">
+    {disciplines.map((d) => <li class="mono">{d}</li>)}
+  </ul>
+
+  <div class="plate__strata" role="list" aria-label="Layers in this deconstruction">
+    {
+      strata.map((id, i) => {
+        const meta = STRATA[id];
+        return (
+          <a
+            role="listitem"
+            class="chip"
+            href={`${href}?s=${i}`}
+            style={`--stratum: var(${meta.token})`}
+          >
+            <span class="chip__dot" aria-hidden="true" />
+            <span class="mono">{meta.name}</span>
+          </a>
+        );
+      })
+    }
+  </div>
+</article>
+
+<style>
+  .plate {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-snug);
+    padding: var(--sp-roomy);
+    border: var(--border-hair);
+    background: var(--ground-2);
+  }
+  .plate--inset {
+    max-width: 62rem;
+    margin-inline: auto;
+  }
+
+  /* With a cover the plate becomes two columns on a wide screen: the shot
+     carries the appeal, the text carries the argument. Below that it stacks
+     with the image first, because the image is what stops the scroll. */
+  .plate.has-cover {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--sp-roomy);
+    align-content: start;
+  }
+  @media (min-width: 900px) {
+    .plate.has-cover {
+      grid-template-columns: 1.15fr 1fr;
+      align-items: start;
+    }
+    .plate.has-cover .plate__cover {
+      grid-row: 1 / span 5;
+      grid-column: 1;
+      position: sticky;
+      top: var(--sp-base);
+    }
+    .plate.has-cover > :not(.plate__cover) {
+      grid-column: 2;
+    }
+  }
+  .plate.has-cover > * {
+    min-width: 0;
+  }
+
+  /* The frame, rim and corner marks now live in <Shot>. */
+
+  /* A pending project is dimmer and marked, so the grid reads as two finished
+     projects and one under way rather than three of equal weight. */
+  .plate.is-pending {
+    border-style: dashed;
+  }
+  .plate.is-pending .plate__title,
+  .plate.is-pending .plate__problem {
+    opacity: 0.72;
+  }
+  .plate__pending {
+    color: var(--accent);
+  }
+
+  .plate__meta {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--sp-base);
+    font-size: 10.5px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-4);
+  }
+
+  .plate__title {
+    font-size: clamp(1.5rem, 3.4vw, 2.4rem);
+    font-weight: 700;
+    letter-spacing: var(--tr-display);
+  }
+  .plate__link {
+    color: var(--ink);
+    text-decoration: none;
+  }
+  /* Stretched hit area, so the plate is clickable without wrapping the
+     buttons inside an anchor. */
+  .plate__link::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+  }
+  .plate__link:hover {
+    color: var(--accent);
+  }
+
+  .plate__problem {
+    font-size: var(--t-lede);
+    color: var(--ink-2);
+    max-width: 54ch;
+  }
+
+  .plate__disciplines {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sp-tight);
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .plate__disciplines li {
+    font-size: 10.5px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    padding: 3px 8px;
+    border: var(--border-hair);
+  }
+
+  .plate__strata {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sp-hair);
+    margin-top: var(--sp-tight);
+    padding-top: var(--sp-snug);
+    border-top: var(--border-hair);
+  }
+  /* Above the stretched link so these stay independently clickable. */
+  .chip {
+    position: relative;
+    z-index: 1;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 9px;
+    border: 1px solid transparent;
+    color: var(--ink-3);
+    text-decoration: none;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    transition:
+      color var(--d-hover) var(--ease-out),
+      border-color var(--d-hover) var(--ease-out);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .chip:hover {
+      color: var(--ink);
+      border-color: var(--stratum);
+    }
+  }
+  .chip__dot {
+    width: 7px;
+    height: 7px;
+    background: var(--stratum);
+    flex: none;
+  }
+</style>

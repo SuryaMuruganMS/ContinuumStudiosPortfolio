@@ -1,0 +1,184 @@
+---
+/**
+ * Three states, not two.
+ *
+ * The token system already handles system / light / dark, so the control has
+ * to as well — a two-way switch would strand anyone whose OS setting changes
+ * during the day, because it can only ever write an explicit choice. "System"
+ * is the default and is a real, selectable option, not merely the absence of
+ * a choice.
+ *
+ * Rendered as a radio group because that is what it is: three mutually
+ * exclusive options with one selected. Arrow keys work for free.
+ */
+const OPTIONS = [
+  { value: 'light', label: 'Light' },
+  { value: 'system', label: 'System' },
+  { value: 'dark', label: 'Dark' },
+] as const;
+---
+
+<div class="theme" role="radiogroup" aria-label="Colour theme">
+  {
+    OPTIONS.map((o) => (
+      <button
+        type="button"
+        class="theme__opt"
+        role="radio"
+        aria-checked="false"
+        aria-label={o.label}
+        title={o.label}
+        data-theme-value={o.value}
+      >
+        <span class="theme__icon" aria-hidden="true">
+          {o.value === 'light' && (
+            <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.4">
+              <circle cx="8" cy="8" r="3.1" />
+              <path
+                stroke-linecap="round"
+                d="M8 1.4v1.7M8 12.9v1.7M14.6 8h-1.7M3.1 8H1.4M12.66 3.34l-1.2 1.2M4.54 11.46l-1.2 1.2M12.66 12.66l-1.2-1.2M4.54 4.54l-1.2-1.2"
+              />
+            </svg>
+          )}
+          {o.value === 'system' && (
+            <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.4">
+              <rect x="1.6" y="2.6" width="12.8" height="8.6" rx="1" />
+              <path stroke-linecap="round" d="M5.6 13.6h4.8" />
+            </svg>
+          )}
+          {o.value === 'dark' && (
+            <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.4">
+              <path
+                stroke-linejoin="round"
+                d="M13.4 9.6A5.8 5.8 0 0 1 6.4 2.6a5.8 5.8 0 1 0 7 7Z"
+              />
+            </svg>
+          )}
+        </span>
+      </button>
+    ))
+  }
+</div>
+
+<script>
+  /**
+   * The boot script in Base.astro has already stamped `data-theme` before
+   * paint. This only has to keep the buttons in step with it and write the
+   * choice back.
+   */
+  const KEY = 'cs-theme';
+  const root = document.documentElement;
+
+  const read = (): string => {
+    try {
+      const v = localStorage.getItem(KEY);
+      return v === 'light' || v === 'dark' ? v : 'system';
+    } catch {
+      return 'system';
+    }
+  };
+
+  const apply = (value: string): void => {
+    if (value === 'system') root.removeAttribute('data-theme');
+    else root.setAttribute('data-theme', value);
+
+    try {
+      if (value === 'system') localStorage.removeItem(KEY);
+      else localStorage.setItem(KEY, value);
+    } catch {
+      /* Blocked storage: the choice still applies for this page view. */
+    }
+
+    for (const el of document.querySelectorAll<HTMLElement>('[data-theme-value]')) {
+      const on = el.dataset.themeValue === value;
+      el.setAttribute('aria-checked', String(on));
+      // Only the selected option is a tab stop; arrow keys move within the
+      // group. This is the standard radiogroup pattern.
+      el.tabIndex = on ? 0 : -1;
+    }
+  };
+
+  const groups = document.querySelectorAll<HTMLElement>('.theme');
+
+  for (const group of groups) {
+    const opts = [...group.querySelectorAll<HTMLElement>('[data-theme-value]')];
+
+    group.addEventListener('click', (e) => {
+      const btn = (e.target as HTMLElement).closest<HTMLElement>('[data-theme-value]');
+      if (btn?.dataset.themeValue) apply(btn.dataset.themeValue);
+    });
+
+    group.addEventListener('keydown', (e) => {
+      const i = opts.indexOf(document.activeElement as HTMLElement);
+      if (i < 0) return;
+      let next = -1;
+      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') next = (i + 1) % opts.length;
+      if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') next = (i - 1 + opts.length) % opts.length;
+      if (next < 0) return;
+      e.preventDefault();
+      const value = opts[next].dataset.themeValue;
+      if (value) {
+        apply(value);
+        opts[next].focus();
+      }
+    });
+  }
+
+  apply(read());
+</script>
+
+<style>
+  .theme {
+    display: inline-flex;
+    align-items: center;
+    gap: 1px;
+    padding: 2px;
+    border: var(--border-hair);
+    border-radius: var(--radius-control);
+    background: var(--surface);
+  }
+
+  .theme__opt {
+    display: grid;
+    place-items: center;
+    width: 26px;
+    height: 24px;
+    border: 0;
+    border-radius: 1px;
+    background: transparent;
+    color: var(--ink-4);
+    cursor: pointer;
+    transition:
+      color var(--d-hover) var(--ease-out),
+      background var(--d-hover) var(--ease-out);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .theme__opt:hover {
+      color: var(--ink-2);
+      background: var(--ground-2);
+    }
+  }
+
+  .theme__opt[aria-checked='true'] {
+    color: var(--accent);
+    background: var(--ground-2);
+    /* Resolves to `none` in light, so this is one rule for both themes. */
+    box-shadow: var(--glow-accent);
+  }
+
+  .theme__opt:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+  }
+
+  .theme__icon {
+    display: grid;
+    place-items: center;
+  }
+
+  /* Without JS the control cannot do anything, so it should not claim it can. */
+  :global(html.no-js) .theme {
+    display: none;
+  }
+</style>

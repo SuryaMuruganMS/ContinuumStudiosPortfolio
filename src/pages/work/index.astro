@@ -1,0 +1,117 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import Plate from '../../components/ui/Plate.astro';
+import { optionalAsset } from '../../lib/assets';
+import type { StratumId } from '../../components/strata/strata';
+
+const work = (await getCollection('work')).sort((a, b) => a.data.order - b.data.order);
+
+// Filters are derived from the content, never hard-coded — a new discipline in
+// a project's frontmatter appears here automatically.
+const disciplines = [...new Set(work.flatMap((w) => w.data.disciplines))].sort();
+const strataUsed = [...new Set(work.flatMap((w) => w.data.strata.map((s) => s.id)))].sort();
+
+/**
+ * Cover shot per project, for this page only. A presentation choice rather
+ * than content, so it is not carried in the entry frontmatter.
+ */
+const COVERS: Record<string, string> = {
+  'kestrel-offshore': '/work/kestrel/06-live-seabed.webp',
+  'axiom-dsf': '/work/axiom/06-live-console.webp',
+  // roshan-portfolio deliberately has none: it is in progress, and a cover
+  // would make an unfinished project look finished.
+};
+---
+
+<Base
+  title="Work — Continuum Studios"
+  description="Every project, filterable by discipline and by the layers it exposes."
+>
+  <section class="section">
+    <div class="shell stack stack--loose">
+      <header class="stack stack--tight">
+        <p class="label">Work</p>
+        <h1>{work.length} {work.length === 1 ? 'project' : 'projects'}</h1>
+        <p class="t-lede">
+          Filter by discipline, or by the layers a project exposes — "show me the ones with a
+          motion layer" is a question no other portfolio can answer.
+        </p>
+      </header>
+
+      <div class="filters">
+        <div class="filters__group">
+          <p class="label">Discipline</p>
+          <div class="filters__row">
+            {disciplines.map((d) => <span class="tagx mono">{d}</span>)}
+          </div>
+        </div>
+        <div class="filters__group">
+          <p class="label">Exposes a layer</p>
+          <div class="filters__row">
+            {strataUsed.map((s) => <span class="tagx mono">{s}</span>)}
+          </div>
+        </div>
+      </div>
+
+      {
+        work.length ? (
+          <div class="work-grid">
+            {work.map((w) => (
+              <Plate
+                href={`/work/${w.id}`}
+                title={w.data.title}
+                client={w.data.client}
+                year={w.data.year}
+                problem={w.data.problem}
+                status={w.data.status}
+                disciplines={w.data.disciplines}
+                strata={w.data.strata.map((s) => s.id as StratumId)}
+                cover={optionalAsset(COVERS[w.id])}
+              />
+            ))}
+          </div>
+        ) : (
+          <div class="state">
+            <p class="state__title">Nothing published yet</p>
+            <p>
+              Projects live in <code>src/content/work/</code>.
+            </p>
+          </div>
+        )
+      }
+    </div>
+  </section>
+</Base>
+
+<style>
+  .filters {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: var(--sp-roomy);
+    padding-block: var(--sp-base);
+    border-block: var(--border-hair);
+  }
+  .filters__group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-tight);
+  }
+  .filters__row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sp-hair);
+  }
+  .tagx {
+    font-size: 10.5px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    padding: 4px 9px;
+    border: var(--border-hair);
+  }
+  .work-grid {
+    display: grid;
+    gap: var(--sp-roomy);
+  }
+</style>

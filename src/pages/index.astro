@@ -1,0 +1,384 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import ProofStrip from '../components/ui/ProofStrip.astro';
+import Plate from '../components/ui/Plate.astro';
+import StrataStage from '../components/strata/StrataStage.svelte';
+import type { StratumId } from '../components/strata/strata';
+import { FOUNDERS, SITE } from '../lib/site';
+import { withoutShots } from '../lib/assets';
+
+const work = (await getCollection('work')).sort((a, b) => a.data.order - b.data.order);
+const featured = work.filter((w) => w.data.featured);
+const shown = featured.length ? featured : work;
+const flagship = shown[0];
+
+/**
+ * Composition weights, deliberately uneven: bleed, inset, bleed. Uniform
+ * section rhythm is the strongest template signal at page level
+ * (Specification, Phase 11 item 2). With a single project only the first weight
+ * is used, which is correct — one plate should be full bleed.
+ */
+const WIDTHS = ['bleed', 'inset', 'bleed'] as const;
+
+
+/**
+ * Every figure here is one a reader can go and verify. That rules out the
+ * numbers a studio site usually opens with — years in business, projects
+ * delivered, clients served — none of which we can source and two of which
+ * would flatter us.
+ */
+const PROOF = [
+  {
+    value: String(flagship?.data.strata.length ?? 0),
+    label: 'Layers in the deepest deconstruction',
+    source: flagship ? `${flagship.data.title}, ${flagship.data.year}` : 'No work published',
+    href: flagship ? `/work/${flagship.id}` : '/work',
+  },
+  {
+    value: '183 kB',
+    label: 'AxiomDSF console, gzipped',
+    source: 'Production build output',
+    href: '/work/axiom-dsf',
+  },
+  {
+    value: '0',
+    label: 'Scroll libraries used',
+    source: 'Native scroll only — colophon',
+    href: '/colophon',
+  },
+];
+
+/**
+ * What we actually take on, described by the constraint rather than the
+ * deliverable. "Web design" tells a buyer nothing about whether we are right
+ * for them; "software someone has to sign off on" does.
+ */
+const WORK_TYPES = [
+  {
+    n: '01',
+    title: 'Interfaces for work, not for browsing',
+    body: 'Consoles, dashboards and review tools — the screens somebody sits in front of for six hours and has to be right in. Density, state and error handling are the design problem, not decoration.',
+  },
+  {
+    n: '02',
+    title: 'Front-end that survives the handover',
+    body: 'Typed, tested, and documented well enough that the next developer does not have to be us. We would rather write the boring version you can maintain than the clever one you cannot.',
+  },
+  {
+    n: '03',
+    title: 'Sites that stay fast on a bad connection',
+    body: 'Performance treated as a budget agreed up front and enforced in CI, not as a phase at the end that gets cut when the deadline moves.',
+  },
+];
+---
+
+<Base
+  title={`${SITE.name} — every decision, visible`}
+  description={SITE.description}
+  stickyHeader={false}
+>
+  <!-- ======================================================= S1 · the thesis -->
+  <section class="hero section--pivot">
+    <div class="shell hero__inner">
+      <div class="hero__copy">
+        <p class="label enter-rise">{SITE.name}</p>
+        <h1 class="t-hero enter-rise">
+          Anyone can show you a finished screen. We show you the decisions inside it.
+        </h1>
+        <p class="t-lede enter-rise">
+          We are a two-person studio that builds software people have to trust. Every project
+          here comes apart into the layers that reveal its hardest problem — scrub one and read
+          the reasoning at each layer.
+        </p>
+        <div class="hero__actions enter-rise">
+          <a class="btn btn--primary" href="/commission">Commission work</a>
+          <a class="btn btn--ghost" href="/work">See the work</a>
+        </div>
+      </div>
+
+      <!-- The mechanic is demonstrated, not described. A visitor has seen it
+           inside four seconds without being told about it. -->
+      <div class="hero__demo">
+        {
+          flagship && (
+            <StrataStage
+              strata={withoutShots(flagship.data.strata)}
+              title={flagship.data.title}
+              compact={true}
+              client:visible
+            />
+          )
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================================================== S2 · the proof strip -->
+  <div class="shell">
+    <ProofStrip items={PROOF} />
+  </div>
+
+  <!-- =================================================== S3 · what we take on -->
+  <section class="section">
+    <div class="shell stack stack--loose">
+      <header class="stack stack--tight reveal">
+        <p class="label">What we take on</p>
+        <h2>Three kinds of problem.</h2>
+        <p class="t-lede">
+          Described by the constraint rather than the deliverable, so you can tell in one read
+          whether we are the wrong studio for you.
+        </p>
+      </header>
+
+      <ul class="kinds" role="list">
+        {
+          WORK_TYPES.map((k, i) => (
+            <li class="kind reveal" data-i={String(i + 1)}>
+              <span class="mono kind__n">{k.n}</span>
+              <h3 class="kind__title">{k.title}</h3>
+              <p class="kind__body">{k.body}</p>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+
+  <!-- ================================================== S4 · selected work -->
+  <section class="section">
+    <div class="shell stack stack--loose">
+      <header class="stack stack--tight reveal">
+        <p class="label">Selected work</p>
+        <h2>{shown.length === 1 ? 'One, shown properly.' : `${shown.length}, shown properly.`}</h2>
+        <p class="t-lede">
+          Depth beats breadth. We would rather take one project apart completely than list ten
+          we cannot say anything specific about.
+        </p>
+      </header>
+
+      {
+        shown.length ? (
+          <div class="work-list">
+            {shown.map((w, i) => (
+              <div class="reveal" data-i={String(i + 1)}>
+                <Plate
+                  href={`/work/${w.id}`}
+                  title={w.data.title}
+                  client={w.data.client}
+                  year={w.data.year}
+                  problem={w.data.problem}
+                  status={w.data.status}
+                status={w.data.status}
+                  disciplines={w.data.disciplines}
+                  strata={w.data.strata.map((s) => s.id as StratumId)}
+                  width={WIDTHS[i] ?? 'bleed'}
+                />
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div class="state">
+            <p class="state__title">No projects published yet</p>
+            <p>
+              Add a markdown file to <code>src/content/work/</code> with a strata array and it
+              appears here.
+            </p>
+          </div>
+        )
+      }
+    </div>
+  </section>
+
+  <!-- ======================================================== S5 · the people -->
+  <section class="section">
+    <div class="shell">
+      <div class="people reveal">
+        <div class="stack stack--tight people__copy">
+          <p class="label">The studio</p>
+          <h2>Two people, and you talk to both.</h2>
+          <p class="t-small people__lede">
+            {SITE.name} is {FOUNDERS.map((f) => f.name).join(' and ')}. There is no account
+            manager between you and the people writing the code, because there is nobody else
+            here to be one.
+          </p>
+          <p class="t-small">
+            <a href="/studio" class="link-quiet">How we work</a> ·
+            <a href="/ledger" class="link-quiet">What went wrong</a> ·
+            <a href={`mailto:${SITE.email}`} class="link-quiet">{SITE.email}</a>
+          </p>
+        </div>
+        <ul class="people__list" role="list">
+          {
+            FOUNDERS.map((f) => (
+              <li class="person">
+                <p class="person__name">{f.name}</p>
+                <p class="mono person__role">{f.role}</p>
+                <p class="person__owns">{f.owns}</p>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  /* The first screen is the argument, so it gets the first screen — one
+     viewport, content centred in it, rather than a tall block of section
+     padding that pushes the buttons out of sight. svh, not vh, so a mobile
+     browser's collapsing toolbar does not crop it. */
+  .hero {
+    min-height: 100svh;
+    display: flex;
+    align-items: center;
+    padding-block: var(--sp-loose);
+  }
+  .hero__inner {
+    display: grid;
+    grid-template-columns: 7fr 5fr;
+    gap: var(--gutter);
+    align-items: center;
+    width: 100%;
+  }
+  .hero__inner > * {
+    min-width: 0;
+  }
+  .hero__copy {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-base);
+  }
+  .hero__copy h1 {
+    /* Capped in characters so the line count stays stable as the clamp scales;
+       at the previous size 22ch computed wider than the column and did nothing. */
+    max-width: 14ch;
+    text-wrap: balance;
+  }
+  .hero__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sp-snug);
+    margin-top: var(--sp-snug);
+  }
+
+  /* Stagger the load sequence: 60ms between lines, once, then nothing moves. */
+  .hero__copy > :nth-child(1) {
+    animation-delay: 0ms;
+  }
+  .hero__copy > :nth-child(2) {
+    animation-delay: 60ms;
+  }
+  .hero__copy > :nth-child(3) {
+    animation-delay: 120ms;
+  }
+  .hero__copy > :nth-child(4) {
+    animation-delay: 180ms;
+  }
+
+  /* ----------------------------------------------------------- what we take on */
+  .kinds {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    /* min(100%, …) so a single column never overflows a narrow viewport —
+       auto-fit alone will happily set a track wider than its container. */
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+    gap: var(--gutter);
+  }
+  .kind {
+    display: grid;
+    align-content: start;
+    gap: var(--sp-tight);
+    padding-top: var(--sp-base);
+    border-top: 2px solid var(--ink);
+  }
+  .kind__n {
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    color: var(--accent);
+  }
+  .kind__title {
+    font-family: var(--f-display);
+    font-size: var(--t-h3);
+    font-weight: 600;
+    letter-spacing: var(--tr-h3);
+    line-height: 1.2;
+  }
+  .kind__body {
+    font-size: var(--t-small);
+    line-height: 1.65;
+    color: var(--ink-2);
+  }
+
+  .work-list {
+    display: grid;
+    gap: var(--sp-sect);
+  }
+
+  /* ------------------------------------------------------------------ people */
+  .people {
+    display: grid;
+    grid-template-columns: 5fr 7fr;
+    gap: var(--gutter);
+    align-items: start;
+    padding-top: var(--sp-roomy);
+    border-top: var(--border-hair);
+  }
+  .people > * {
+    min-width: 0;
+  }
+  .people__lede {
+    color: var(--ink-2);
+    max-width: 46ch;
+  }
+  .people__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+    gap: var(--sp-base);
+  }
+  .person {
+    display: grid;
+    align-content: start;
+    gap: var(--sp-hair);
+    padding: var(--sp-base);
+    border: var(--border-hair);
+    border-top: 2px solid var(--accent);
+  }
+  .person__name {
+    font-family: var(--f-display);
+    font-size: var(--t-h3);
+    font-weight: 600;
+    letter-spacing: var(--tr-h3);
+  }
+  .person__role {
+    font-size: 10.5px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  .person__owns {
+    font-size: var(--t-small);
+    line-height: 1.6;
+    color: var(--ink-2);
+  }
+
+  @media (max-width: 899px) {
+    /* The demo is the more persuasive element and should not be pushed below
+       the fold on a phone. */
+    .hero__inner {
+      grid-template-columns: 1fr;
+    }
+    .hero__demo {
+      order: -1;
+    }
+    .people {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

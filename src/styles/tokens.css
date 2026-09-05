@@ -1,0 +1,248 @@
+/* ===========================================================================
+   STRATA — DESIGN TOKENS
+   ---------------------------------------------------------------------------
+   Source of truth: The Strata Specification, Phase 4.
+
+   Theme structure handles three states, not two. An explicit choice stamps
+   data-theme on <html>; the default "system" setting stamps nothing, so only
+   prefers-color-scheme separates light from dark for most visitors. Every
+   colour is therefore defined at token level in bare :root first, redefined
+   under the media query guarded against an explicit light choice, and
+   redefined again under the explicit dark stamp. No component may declare a
+   colour inside a media or [data-theme] block.
+
+   STRATA is dark-first: the dark palette is the designed one and the light
+   palette is its full companion, not an afterthought.
+   =========================================================================== */
+
+:root {
+  color-scheme: light dark;
+
+  /* ---------------------------------------------------------- ground + ink
+     Light theme. Cool drafting-paper neutral, never pure white. */
+  --ground: #e7e8e3;
+  --ground-2: #dedfd9;
+  --surface: #f1f2ee;
+  --ink: #15171a;
+  --ink-2: #3d4247;
+  --ink-3: #6b7178;
+  --ink-4: #949aa1;
+  --rule: #c9cbc4;
+  --rule-live: #b4b7ae;
+
+  /* Accent — viridian. One accent, used sparingly. */
+  --accent: #2f6f5e;
+  --accent-deep: #1f4e42;
+  --accent-soft: #e0eae5;
+
+  /* Semantic. Separate from the accent; never doubles as it. */
+  --ok: #3f7d5c;
+  --warn: #9a6f1f;
+  --bad: #a3452a;
+
+  /* ------------------------------------------------------- the stratum index
+     Functional colour. Each layer of the deconstruction owns a hue and that
+     hue appears nowhere that is not that layer. */
+  --s-brief: #6f757d;
+  --s-structure: #4a6b88;
+  --s-grid: #2f6f5e;
+  --s-type: #5d4a7d;
+  --s-colour: #a3452a;
+  --s-depth: #3f4a5a;
+  --s-motion: #8a6414;
+  --s-live: #15171a;
+
+  /* Engineering strata, available per project. */
+  --s-states: #1f5f6b;
+  --s-data: #6b4a6b;
+  --s-load: #7d5a1f;
+  --s-edge: #8a3a4a;
+
+  /* ------------------------------------------------------------------ type */
+  --f-display:
+    'Bricolage Grotesque Variable', 'Bricolage Grotesque', 'Helvetica Neue', Arial, sans-serif;
+  --f-body: 'Newsreader Variable', 'Newsreader', Georgia, 'Times New Roman', serif;
+  --f-mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+
+  /* Scale — 1.26 ratio, fluid between 390px and 1440px. */
+  /* 8vw put the headline at 115px on a 1440 viewport, which pushed the
+     hero call to action below the fold on a standard laptop. Scaled to
+     land the whole hero — label, headline, lede, buttons — inside 900px. */
+  --t-hero: clamp(2.6rem, 5.2vw, 5.25rem);
+  --t-h1: clamp(2.4rem, 5.2vw, 4.2rem);
+  --t-h2: clamp(1.7rem, 3.4vw, 2.6rem);
+  --t-h3: clamp(1.25rem, 2vw, 1.5rem);
+  --t-lede: clamp(1.05rem, 1.5vw, 1.25rem);
+  --t-body: 17px;
+  --t-small: 14.5px;
+  --t-label: 11px;
+
+  --lh-hero: 0.94;
+  --lh-head: 1.06;
+  --lh-body: 1.68;
+  --lh-tight: 1.35;
+
+  --tr-display: -0.032em;
+  --tr-h3: -0.015em;
+  --tr-label: 0.14em;
+
+  --measure: 68ch;
+  --measure-prose: 62ch;
+
+  /* ----------------------------------------------------------------- space
+     4px base, named by role rather than by number, so a value cannot be
+     picked because it "looks about right". */
+  --sp-hair: 4px;
+  --sp-tight: 8px;
+  --sp-snug: 12px;
+  --sp-base: 16px;
+  --sp-roomy: 24px;
+  --sp-loose: 40px;
+  --sp-sect: clamp(72px, 12vh, 160px);
+  --sp-pivot: clamp(120px, 20vh, 260px);
+
+  /* ------------------------------------------------------------------ grid */
+  --col: 12;
+  --gutter: clamp(16px, 2vw, 28px);
+  --margin: clamp(20px, 5vw, 88px);
+  --max: 1440px;
+  --max-prose: 760px;
+
+  /* --------------------------------------------------------------- surfaces
+     Depth is drawn, not shadowed. Elevation comes from hairline weight and a
+     ground shift. The scrubber handle is the one sanctioned shadow. */
+  /* Neon is a dark-theme property. In light these resolve to nothing, so the
+     same rules can reference them unconditionally without a media query. */
+  --halo-1: transparent;
+  --halo-2: transparent;
+  --glow-accent: none;
+  --glow-soft: none;
+  --plate-glow: none;
+
+  --border-hair: 1px solid var(--rule);
+  --border-live: 1px solid var(--rule-live);
+  --radius: 0px;
+  --radius-control: 2px;
+  --shadow-handle: 0 2px 8px -2px rgb(0 0 0 / 0.45);
+
+  /* ---------------------------------------------------------------- motion
+     Three curves and six durations. Anything else is a bug. */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-io: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-lin: linear;
+
+  --d-press: 100ms;
+  --d-hover: 160ms;
+  --d-ui: 220ms;
+  --d-page: 420ms;
+  --d-strat: 520ms;
+  --d-reveal: 700ms;
+
+  /* --------------------------------------------------------------- z-index */
+  --z-base: 0;
+  --z-sticky: 10;
+  --z-header: 20;
+  --z-scrubber: 30;
+  --z-sheet: 40;
+  --z-skip: 100;
+}
+
+/* --------------------------------------------------------------- dark theme
+   Applies when the OS asks for dark AND the visitor has not explicitly chosen
+   light. This is the designed palette. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    /* Neon dark. The ground goes near-black so the accents can actually
+       emit; cyan and violet are lifted from AxiomDSF's own plasma, which is
+       the flagship project on this site. Text stays a cool off-white rather
+       than pure white — pure white on near-black vibrates at body size. */
+    --ground: #07080b;
+    --ground-2: #0b0d12;
+    --surface: #101319;
+    --ink: #eaf0f7;
+    --ink-2: #b6c0cc;
+    --ink-3: #7e8a99;
+    --ink-4: #545e6b;
+    --rule: #1c2029;
+    --rule-live: #2b323d;
+
+    --accent: #2de2e6;
+    --accent-deep: #a855f7;
+    --accent-soft: #0d1f26;
+
+    --ok: #34e5a0;
+    --warn: #ffc24b;
+    --bad: #ff5c7a;
+
+    --s-brief: #8fa3b8;
+    --s-structure: #4fc3f7;
+    --s-grid: #2de2e6;
+    --s-type: #b57bff;
+    --s-colour: #ff7a59;
+    --s-depth: #7c8cf8;
+    --s-motion: #ffc24b;
+    --s-live: #eaf0f7;
+
+    --s-states: #35d0e0;
+    --s-data: #d07be8;
+    --s-load: #ffb84d;
+    --s-edge: #ff5c8a;
+
+    /* Two very low-alpha washes behind the page. They are what makes the
+       theme read as neon rather than merely dark, and at this alpha they
+       never touch text contrast. */
+    --halo-1: rgb(168 85 247 / 0.13);
+    --halo-2: rgb(45 226 230 / 0.10);
+    --glow-accent: 0 0 26px -6px rgb(45 226 230 / 0.55);
+    --glow-soft: 0 0 18px -8px rgb(168 85 247 / 0.45);
+    --plate-glow: 0 0 0 1px rgb(45 226 230 / 0.09), 0 18px 48px -28px rgb(0 0 0 / 0.9);
+  }
+}
+
+/* Explicit dark choice wins over a light OS. Same values as the media block. */
+:root[data-theme='dark'] {
+  /* Neon dark. The ground goes near-black so the accents can actually
+     emit; cyan and violet are lifted from AxiomDSF's own plasma, which is
+     the flagship project on this site. Text stays a cool off-white rather
+     than pure white — pure white on near-black vibrates at body size. */
+  --ground: #07080b;
+  --ground-2: #0b0d12;
+  --surface: #101319;
+  --ink: #eaf0f7;
+  --ink-2: #b6c0cc;
+  --ink-3: #7e8a99;
+  --ink-4: #545e6b;
+  --rule: #1c2029;
+  --rule-live: #2b323d;
+
+  --accent: #2de2e6;
+  --accent-deep: #a855f7;
+  --accent-soft: #0d1f26;
+
+  --ok: #34e5a0;
+  --warn: #ffc24b;
+  --bad: #ff5c7a;
+
+  --s-brief: #8fa3b8;
+  --s-structure: #4fc3f7;
+  --s-grid: #2de2e6;
+  --s-type: #b57bff;
+  --s-colour: #ff7a59;
+  --s-depth: #7c8cf8;
+  --s-motion: #ffc24b;
+  --s-live: #eaf0f7;
+
+  --s-states: #35d0e0;
+  --s-data: #d07be8;
+  --s-load: #ffb84d;
+  --s-edge: #ff5c8a;
+
+  /* Two very low-alpha washes behind the page. They are what makes the
+     theme read as neon rather than merely dark, and at this alpha they
+     never touch text contrast. */
+  --halo-1: rgb(168 85 247 / 0.13);
+  --halo-2: rgb(45 226 230 / 0.10);
+  --glow-accent: 0 0 26px -6px rgb(45 226 230 / 0.55);
+  --glow-soft: 0 0 18px -8px rgb(168 85 247 / 0.45);
+  --plate-glow: 0 0 0 1px rgb(45 226 230 / 0.09), 0 18px 48px -28px rgb(0 0 0 / 0.9);
+}

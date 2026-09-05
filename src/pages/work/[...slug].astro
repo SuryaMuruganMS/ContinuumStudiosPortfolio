@@ -1,0 +1,174 @@
+---
+import type { GetStaticPaths } from 'astro';
+import { getCollection, render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import StrataStage from '../../components/strata/StrataStage.svelte';
+import StratumPlane from '../../components/strata/StratumPlane.astro';
+import Shot from '../../components/ui/Shot.astro';
+import { optionalAsset, resolveShots } from '../../lib/assets';
+
+export const getStaticPaths = (async () => {
+  const work = await getCollection('work');
+  return work.map((entry) => ({ params: { slug: entry.id }, props: { entry } }));
+}) satisfies GetStaticPaths;
+
+const { entry } = Astro.props;
+
+const { Content } = await render(entry);
+const d = entry.data;
+/** Screenshots that have actually been supplied; the rest fall back to the drawn plate. */
+const shots = resolveShots(d.strata);
+/** Gallery entries whose file actually exists; the section hides if none do. */
+const gallery = (d.gallery ?? []).filter((g) => optionalAsset(g.src));
+---
+
+<Base title={`${d.title} — Continuum Studios`} description={d.problem}>
+  <article>
+    <header class="case-head section">
+      <div class="shell stack stack--base">
+        <p class="label">{d.client} · {d.year}</p>
+        <h1>{d.title}</h1>
+        <p class="t-lede">{d.problem}</p>
+        <ul class="case-disciplines" role="list">
+          {d.disciplines.map((x) => <li class="mono">{x}</li>)}
+        </ul>
+      </div>
+    </header>
+
+    {
+      d.metrics && d.metrics.length > 0 && (
+        <div class="shell">
+          <div class="table-wrap">
+            <table>
+              <caption class="visually-hidden">Measured outcomes</caption>
+              <thead>
+                <tr>
+                  <th scope="col">Measure</th>
+                  <th scope="col">Before</th>
+                  <th scope="col">After</th>
+                  <th scope="col">Source</th>
+                </tr>
+              </thead>
+              <tbody>
+                {d.metrics.map((m) => (
+                  <tr>
+                    <td>{m.label}</td>
+                    <td>{m.before ?? '—'}</td>
+                    <td>
+                      <b>{m.after}</b>
+                    </td>
+                    <td>{m.source}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )
+    }
+
+    <!-- The signature section. Scroll-driven, pinned, deep-linkable via ?s=n. -->
+    <StrataStage strata={shots} title={d.title} client:load />
+
+    <!-- Every stratum also renders as static content below the stage, so a
+         crawler and a reduced-motion reader get the full argument without
+         needing the scrub. This is a real SEO advantage over a screenshot
+         gallery. -->
+    <section class="section">
+      <div class="shell stack stack--loose">
+        <header class="stack stack--tight">
+          <p class="label">Every layer, in full</p>
+          <h2>The decisions, written down</h2>
+        </header>
+        <div class="planes">
+          {shots.map((s, i) => <StratumPlane stratum={s} index={i} />)}
+        </div>
+      </div>
+    </section>
+
+    {
+      gallery.length > 0 && (
+        <section class="section">
+          <div class="shell stack stack--loose">
+            <header class="stack stack--tight">
+              <p class="label">The rest of it</p>
+              <h2>Beyond the six layers</h2>
+            </header>
+            <ul class="gallery" role="list">
+              {gallery.map((g) => (
+                <li class="gshot">
+                  <Shot src={g.src} alt={g.caption} label={d.title} ratio="16 / 9" />
+                  <p class="gshot__cap">{g.caption}</p>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+      )
+    }
+
+    <section class="section">
+      <div class="shell prose">
+        <Content />
+      </div>
+    </section>
+
+    <div class="shell case-next">
+      <a class="btn btn--primary" href="/commission">Commission something like this</a>
+      <a class="btn btn--ghost" href="/work">All work</a>
+    </div>
+  </article>
+</Base>
+
+<style>
+  .case-head h1 {
+    font-size: var(--t-h1);
+    max-width: 26ch;
+  }
+  .case-disciplines {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sp-tight);
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .case-disciplines li {
+    font-size: 10.5px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    padding: 4px 9px;
+    border: var(--border-hair);
+  }
+  .planes {
+    display: grid;
+    gap: var(--sp-roomy);
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr));
+  }
+  .case-next {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sp-snug);
+  }
+
+  .gallery {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr));
+    gap: var(--gutter);
+  }
+  .gshot {
+    display: grid;
+    align-content: start;
+    gap: var(--sp-snug);
+  }
+  .gshot__cap {
+    font-size: var(--t-small);
+    line-height: 1.6;
+    color: var(--ink-3);
+    max-width: 52ch;
+  }
+</style>

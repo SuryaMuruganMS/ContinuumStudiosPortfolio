@@ -1,0 +1,104 @@
+---
+import Base from '../layouts/Base.astro';
+import Vitals from '../components/machine/Vitals.svelte';
+
+const STACK = [
+  ['Framework', 'Astro', 'Ships zero JavaScript by default; hydrates islands on demand.'],
+  ['Islands', 'Svelte', 'Smallest runtime of the credible options. Two components need it.'],
+  [
+    'Styling',
+    'Plain CSS + custom properties',
+    'The system is ~40 tokens. A framework would solve nothing.',
+  ],
+  ['Scroll', 'Native + a 40-line helper', 'No Lenis, no Locomotive, no ScrollTrigger.'],
+  ['Content', 'Markdown in the repository', 'Git is the audit trail, which suits the ledger.'],
+  ['Forms', 'One serverless route + Resend REST', 'No SDK — it is one HTTPS POST.'],
+  ['Hosting', 'Cloudflare Pages', 'Static at the edge; one on-demand route.'],
+  [
+    'Analytics',
+    'Cookieless',
+    'So there is no consent banner, so there is no credibility cost.',
+  ],
+];
+
+const REFUSED = [
+  ['Smooth-scroll library', 'Breaks native scroll feel, find-in-page and scroll anchoring.'],
+  ['Custom cursor', 'Strictly worse than the system cursor, and a template tell.'],
+  ['WebGL fluid hero', '~300 KB and a permanent GPU loop to say nothing.'],
+  ['Loading percentage', 'An artificial delay on a site whose argument is that it is fast.'],
+];
+---
+
+<Base
+  title="Colophon — Continuum Studios"
+  description="How this site is built, and its live performance measured in your browser."
+>
+  <section class="section">
+    <div class="shell stack stack--loose">
+      <header class="stack stack--tight">
+        <p class="label">Machine Room</p>
+        <h1>How this is built</h1>
+        <p class="t-lede">
+          If you claim craft, publish the measurements. These are the real numbers from your
+          session, not a screenshot of a good Lighthouse run.
+        </p>
+      </header>
+
+      <Vitals client:load />
+
+      <div class="stack stack--snug">
+        <h2>Stack</h2>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr
+                ><th scope="col">Layer</th><th scope="col">Choice</th><th scope="col">Why</th
+                ></tr
+              >
+            </thead>
+            <tbody>
+              {
+                STACK.map(([layer, choice, why]) => (
+                  <tr>
+                    <>
+                      <td>{layer}</td>
+                      <td>
+                        <b>{choice}</b>
+                      </td>
+                      <td>{why}</td>
+                    </>
+                  </tr>
+                ))
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="stack stack--snug">
+        <h2>Deliberately not used</h2>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th scope="col">Refused</th><th scope="col">Reason</th></tr>
+            </thead>
+            <tbody>
+              {
+                REFUSED.map(([what, why]) => (
+                  <tr>
+                    <>
+                      <td>
+                        <b>{what}</b>
+                      </td>
+                      <td>{why}</td>
+                    </>
+                  </tr>
+                ))
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+</Base>

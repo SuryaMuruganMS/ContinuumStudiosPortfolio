@@ -1,0 +1,179 @@
+---
+import Base from '../layouts/Base.astro';
+import { FOUNDERS, SITE } from '../lib/site';
+
+/**
+ * Operating principles, each with a real example attached — the specification
+ * rejects a paragraph of values with no specifics (Phase 11, item 14).
+ * Native <details> rather than a JS accordion: free keyboard and screen-reader
+ * behaviour, and height animation is the one sanctioned layout animation.
+ *
+ * Every example below points at something on this site or in AxiomDSF that a
+ * reader can go and check. That constraint is the whole point of the section.
+ */
+const PRINCIPLES = [
+  {
+    claim: 'The record has to outlive the tool that made it.',
+    example:
+      'Every stage of AxiomDSF writes plain Markdown to disk rather than rows in a database. It costs us a nice query layer and buys the client a record they can read in a diff, grep on their own machine, and keep after they stop paying us.',
+  },
+  {
+    claim: 'Performance is a design constraint, not an optimisation phase.',
+    example:
+      'This site measures its own Core Web Vitals in the browser you are reading it in and publishes them on the colophon. A number printed on the page is what stops a 3 MB hero video getting approved in the first place.',
+  },
+  {
+    claim: 'Accessibility is built in the same pass, or it is not built.',
+    example:
+      'The deconstruction scrubber is a real input[type=range]. That was decided before it was styled, because retrofitting keyboard and screen-reader support onto a div is how it ends up half-done.',
+  },
+  {
+    claim: 'We publish what went wrong.',
+    example:
+      'The ledger entry for August 2026 describes shipping an AxiomDSF review surface that was unusable with real content, why two of us missed it, and what we test with now. It is on the site because a ledger with no failures in it is marketing.',
+  },
+];
+---
+
+<Base
+  title="Studio — Continuum Studios"
+  description="How we work, with an example attached to every claim."
+>
+  <section class="section">
+    <div class="shell stack stack--loose">
+      <header class="stack stack--tight">
+        <p class="label">Studio</p>
+        <h1>Operating principles</h1>
+        <p class="t-lede">
+          Four claims. Each has a real example underneath, because a principle without one is
+          decoration.
+        </p>
+      </header>
+
+      <div class="principles">
+        {
+          PRINCIPLES.map((p, i) => (
+            <details class="principle">
+              <summary>
+                <span class="mono principle__no">{String(i + 1).padStart(2, '0')}</span>
+                <span class="principle__claim">{p.claim}</span>
+              </summary>
+              <p class="principle__example">{p.example}</p>
+            </details>
+          ))
+        }
+      </div>
+
+      <section class="stack stack--base" aria-labelledby="who">
+        <h2 id="who" class="h-sec">Who you actually work with</h2>
+        <p class="t-small who__lede">
+          Two people. Neither of us hands your project to someone you have not met, because
+          there is no one else to hand it to.
+        </p>
+        <ul class="founders" role="list">
+          {
+            FOUNDERS.map((f) => (
+              <li class="founder">
+                <p class="founder__name">{f.name}</p>
+                <p class="mono founder__role">{f.role}</p>
+                <p class="founder__owns">{f.owns}</p>
+              </li>
+            ))
+          }
+        </ul>
+        <p class="t-small">
+          Direct, no form in between: <a href={`mailto:${SITE.email}`} class="link-quiet">{SITE.email}</a>
+        </p>
+      </section>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .principles {
+    border-top: var(--border-hair);
+  }
+  .principle {
+    border-bottom: var(--border-hair);
+  }
+  summary {
+    display: flex;
+    gap: var(--sp-base);
+    align-items: baseline;
+    padding: var(--sp-base) 0;
+    cursor: pointer;
+    list-style: none;
+  }
+  summary::-webkit-details-marker {
+    display: none;
+  }
+  summary:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+  .principle__no {
+    font-size: 11px;
+    color: var(--accent);
+    flex: none;
+  }
+  .principle__claim {
+    font-family: var(--f-display);
+    font-size: var(--t-h3);
+    font-weight: 600;
+    letter-spacing: var(--tr-h3);
+    color: var(--ink);
+  }
+  .h-sec {
+    font-family: var(--f-display);
+    font-size: var(--t-h2);
+    font-weight: 600;
+    letter-spacing: var(--tr-h2);
+  }
+  .who__lede {
+    color: var(--ink-2);
+    max-width: 62ch;
+  }
+  .founders {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    /* Two founders, two columns — but the minimum is what keeps the cards from
+       being crushed into unreadable strips on a narrow viewport. */
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+    gap: var(--sp-base);
+  }
+  .founder {
+    padding: var(--sp-base);
+    border: var(--border-hair);
+    border-top: 2px solid var(--accent);
+    display: grid;
+    gap: var(--sp-hair);
+    align-content: start;
+  }
+  .founder__name {
+    font-family: var(--f-display);
+    font-size: var(--t-h3);
+    font-weight: 600;
+    letter-spacing: var(--tr-h3);
+  }
+  .founder__role {
+    font-size: 10.5px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  .founder__owns {
+    font-size: var(--t-small);
+    line-height: 1.6;
+    color: var(--ink-2);
+  }
+
+  .principle__example {
+    padding: 0 0 var(--sp-base) calc(11px + var(--sp-base) + 1ch);
+    font-size: var(--t-small);
+    line-height: 1.65;
+    color: var(--ink-2);
+    max-width: 68ch;
+  }
+</style>

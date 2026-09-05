@@ -1,0 +1,172 @@
+---
+/**
+ * A screenshot presented as an artefact rather than pasted in raw.
+ *
+ * Three decisions worth stating:
+ *
+ * 1. The frame takes the image's own aspect ratio.
+ *
+ *    It used to force 16:10 with `object-fit: contain`, which meant a 1.72:1
+ *    console screenshot sat in a box with pale bars above and below it. Cover
+ *    would have cropped the sidebar and stage rail — the parts that prove the
+ *    thing is real — so neither fitting mode was right. Letting the image set
+ *    the height removes the choice: nothing is cropped and nothing is padded.
+ *
+ * 2. Square corners. The site's `--radius` is 0 and stays 0; the "premium"
+ *    treatment here is the chrome bar, the corner marks and the rim, not
+ *    rounding that would break the drafting language everywhere else.
+ *
+ * 3. The corner marks are drawn in the layer's own hue, so the stratum index
+ *    stays functional colour rather than becoming decoration.
+ */
+interface Props {
+  src: string;
+  alt: string;
+  /** Monospace label in the frame's chrome bar. */
+  label?: string;
+  /** CSS colour for the corner marks — usually a stratum token. */
+  tint?: string;
+  /** Aspect box for the screen area. */
+  ratio?: string;
+  eager?: boolean;
+}
+
+const { src, alt, label, tint, ratio = '16 / 10', eager = false } = Astro.props;
+---
+
+<div class="shot" style={`--tint: ${tint ?? 'var(--accent)'}; --ratio: ${ratio}`}>
+  <div class="shot__bar" aria-hidden="true">
+    <span class="shot__dots"><i></i><i></i><i></i></span>
+    {label && <span class="shot__label mono">{label}</span>}
+  </div>
+
+  <div class="shot__screen">
+    <img
+      src={src}
+      alt={alt}
+      loading={eager ? 'eager' : 'lazy'}
+      decoding="async"
+    />
+    <span class="shot__mark shot__mark--tl" aria-hidden="true"></span>
+    <span class="shot__mark shot__mark--tr" aria-hidden="true"></span>
+    <span class="shot__mark shot__mark--bl" aria-hidden="true"></span>
+    <span class="shot__mark shot__mark--br" aria-hidden="true"></span>
+  </div>
+</div>
+
+<style>
+  .shot {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    background: var(--ground-2);
+    border: var(--border-hair);
+    /* `none` in light, a neon rim in dark — one rule, both themes. */
+    box-shadow: var(--plate-glow);
+    transition:
+      box-shadow var(--d-ui) var(--ease-out),
+      border-color var(--d-ui) var(--ease-out),
+      transform var(--d-ui) var(--ease-out);
+  }
+
+  /* Chrome bar: enough to read as an application window, not a skeuomorphic
+     macOS imitation. */
+  .shot__bar {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-snug);
+    padding: 0 var(--sp-snug);
+    height: 28px;
+    flex: none;
+    border-bottom: var(--border-hair);
+    background: var(--surface);
+  }
+  .shot__dots {
+    display: flex;
+    gap: 5px;
+    flex: none;
+  }
+  .shot__dots i {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--rule-live);
+  }
+  .shot__dots i:first-child {
+    background: color-mix(in oklab, var(--tint) 70%, var(--rule-live));
+  }
+  .shot__label {
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-4);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .shot__screen {
+    position: relative;
+    background: var(--ground);
+    overflow: hidden;
+    /* No aspect-ratio: the image supplies it, so there is never a letterbox. */
+  }
+  .shot__screen img {
+    display: block;
+    width: 100%;
+    height: auto;
+    /* Nothing is cropped. A wide shot letterboxes against the ground. */
+  }
+
+  /* Corner marks, as on a drawing sheet. 1px hairlines in the layer hue. */
+  .shot__mark {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    pointer-events: none;
+    opacity: 0.85;
+  }
+  .shot__mark--tl {
+    top: 6px;
+    left: 6px;
+    border-top: 1px solid var(--tint);
+    border-left: 1px solid var(--tint);
+  }
+  .shot__mark--tr {
+    top: 6px;
+    right: 6px;
+    border-top: 1px solid var(--tint);
+    border-right: 1px solid var(--tint);
+  }
+  .shot__mark--bl {
+    bottom: 6px;
+    left: 6px;
+    border-bottom: 1px solid var(--tint);
+    border-left: 1px solid var(--tint);
+  }
+  .shot__mark--br {
+    bottom: 6px;
+    right: 6px;
+    border-bottom: 1px solid var(--tint);
+    border-right: 1px solid var(--tint);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .shot:hover {
+      transform: translateY(-2px);
+      border-color: color-mix(in oklab, var(--tint) 45%, var(--rule));
+      box-shadow:
+        var(--plate-glow),
+        0 0 28px -10px var(--tint);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .shot {
+      transition: none;
+    }
+    .shot:hover {
+      transform: none;
+    }
+  }
+</style>

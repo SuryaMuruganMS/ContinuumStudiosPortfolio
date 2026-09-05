@@ -1,0 +1,73 @@
+---
+/**
+ * A calm footer after a loud page. The Commission Desk entry, a real email in
+ * plain text (technical buyers skip funnels — do not force them through one),
+ * and the note subscription. No motion.
+ */
+import { SITE } from '../../lib/site';
+
+const year = new Date().getFullYear();
+---
+
+<footer class="site-foot">
+  <div class="shell">
+    <div class="site-foot__grid">
+      <div class="stack stack--snug">
+        <p class="label">Start something</p>
+        <a href="/commission" class="btn btn--primary">Open the Commission Desk</a>
+        <p class="site-foot__note">
+          Four questions. You get a usable brief at the end whether or not you hire us.
+        </p>
+      </div>
+
+      <div class="stack stack--tight">
+        <p class="label">Direct</p>
+        <a href={`mailto:${SITE.email}`} class="link-quiet">{SITE.email}</a>
+        <a href="/ledger" class="link-quiet">The ledger</a>
+        <a href="/colophon" class="link-quiet">How this site is built</a>
+      </div>
+
+      <div class="stack stack--tight">
+        <p class="label">Elsewhere</p>
+        <a href="/rss.xml" class="link-quiet">RSS</a>
+        <a href="/notes" class="link-quiet">Notes</a>
+      </div>
+    </div>
+
+    <div class="site-foot__base">
+      <span class="mono">{SITE.name} · {year}</span>
+      <span class="mono">Built with Astro. No scroll libraries.</span>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .site-foot {
+    border-top: 1px solid var(--ink);
+    padding-block: var(--sp-loose) var(--sp-roomy);
+    margin-top: var(--sp-sect);
+  }
+  .site-foot__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--sp-loose);
+    align-items: start;
+  }
+  .site-foot__note {
+    font-size: var(--t-small);
+    color: var(--ink-3);
+    max-width: 34ch;
+  }
+  .site-foot__base {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sp-snug) var(--sp-loose);
+    margin-top: var(--sp-loose);
+    padding-top: var(--sp-base);
+    border-top: var(--border-hair);
+    font-size: 10.5px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-4);
+  }
+</style>

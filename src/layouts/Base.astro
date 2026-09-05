@@ -1,0 +1,106 @@
+---
+import '../styles/fonts.css';
+import '../styles/tokens.css';
+import '../styles/base.css';
+import '../styles/motion.css';
+
+import Header from '../components/ui/Header.astro';
+import Footer from '../components/ui/Footer.astro';
+import { SITE } from '../lib/site';
+
+interface Props {
+  title: string;
+  description: string;
+  /** The index keeps its header static so the hero thesis stands alone. */
+  stickyHeader?: boolean;
+  /** Development routes are noindex. */
+  noindex?: boolean;
+}
+
+const { title, description, stickyHeader = true, noindex = false } = Astro.props;
+const canonical = new URL(Astro.url.pathname, Astro.site ?? SITE.url);
+---
+
+<!doctype html>
+<!-- `no-js` is removed by the inline script below the moment JavaScript is
+     proven to run. Anything that needs a non-JS fallback styles itself against
+     html.no-js — the Commission Desk shows every step at once there, and posts
+     the whole form in one request. -->
+<html lang="en" class="no-js">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical.href} />
+    {noindex && <meta name="robots" content="noindex, nofollow" />}
+
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical.href} />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <meta name="theme-color" content="#07080b" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#e7e8e3" media="(prefers-color-scheme: light)" />
+
+    <!-- Applied before first paint, so a visitor who chose dark never sees a
+         white flash. Inline and synchronous on purpose: a deferred module
+         would run after the first frame, which is the whole problem. -->
+    <script is:inline>
+      (function () {
+        try {
+          const t = localStorage.getItem('cs-theme');
+          if (t === 'light' || t === 'dark') {
+            document.documentElement.setAttribute('data-theme', t);
+          }
+        } catch {
+          /* Private mode or blocked storage: fall through to the OS setting. */
+        }
+      })();
+    </script>
+
+    <link rel="alternate" type="application/rss+xml" title={`${SITE.name} notes`} href="/rss.xml" />
+
+    <!-- Only the two faces that render above the fold. Preloading the mono
+         cuts would compete with the LCP element, which is the headline. -->
+    <link
+      rel="preload"
+      href="/fonts/bricolage-grotesque-var.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin="anonymous"
+    />
+    <link
+      rel="preload"
+      href="/fonts/newsreader-var.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin="anonymous"
+    />
+  </head>
+
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+
+    <Header sticky={stickyHeader} />
+
+    <main id="main">
+      <slot />
+    </main>
+
+    <Footer />
+
+    <script>
+      // Progressive enhancement marker. The Commission Desk renders every step
+      // at once for `html.no-js`; this removes that fallback once JS is proven
+      // to run. Written inline and early so there is no flash of the wrong state.
+      document.documentElement.classList.remove('no-js');
+    </script>
+
+    <script>
+      import { armReveal } from '../lib/scroll';
+      armReveal(document.body);
+    </script>
+  </body>
+</html>

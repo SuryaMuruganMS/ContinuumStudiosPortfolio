@@ -1,0 +1,552 @@
+/* ===========================================================================
+   STRATA — BASE SYSTEM
+   ---------------------------------------------------------------------------
+   Reset, typography primitives, layout primitives, and interactive states.
+   Every colour here comes from a token; none is declared inside a media or
+   [data-theme] block, so all three theme states resolve correctly.
+   =========================================================================== */
+
+/* ------------------------------------------------------------------ reset */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+* {
+  margin: 0;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  tab-size: 2;
+  /* Native scrolling. The specification forbids scroll hijacking; smooth
+     behaviour here is the browser's own and honours reduced motion below. */
+  scroll-behavior: smooth;
+}
+
+body {
+  min-height: 100dvh;
+  /* Two fixed washes over the flat ground. Both resolve to `transparent` in
+     light, so this is one rule for both themes rather than a themed override. */
+  background:
+    radial-gradient(80ch 70ch at 12% -10%, var(--halo-1), transparent 70%),
+    radial-gradient(70ch 60ch at 92% 8%, var(--halo-2), transparent 70%),
+    var(--ground);
+  background-attachment: fixed, fixed, scroll;
+  color: var(--ink);
+  font-family: var(--f-body);
+  font-size: var(--t-body);
+  line-height: var(--lh-body);
+  font-optical-sizing: auto;
+  font-synthesis-weight: none;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+img,
+picture,
+video,
+canvas,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+img,
+video {
+  height: auto;
+}
+
+input,
+button,
+textarea,
+select {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+p,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  overflow-wrap: break-word;
+}
+
+ul[role='list'],
+ol[role='list'] {
+  list-style: none;
+  padding: 0;
+}
+
+:target {
+  scroll-margin-top: var(--sp-loose);
+}
+
+::selection {
+  background: var(--accent);
+  color: var(--ground);
+}
+
+/* ------------------------------------------------------------- typography */
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--f-display);
+  font-weight: 700;
+  line-height: var(--lh-head);
+  letter-spacing: var(--tr-display);
+  text-wrap: balance;
+}
+
+h1 {
+  font-size: var(--t-h1);
+}
+h2 {
+  font-size: var(--t-h2);
+}
+h3 {
+  font-size: var(--t-h3);
+  font-weight: 600;
+  letter-spacing: var(--tr-h3);
+}
+h4 {
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: var(--tr-h3);
+}
+
+.t-hero {
+  font-family: var(--f-display);
+  font-size: var(--t-hero);
+  font-weight: 800;
+  line-height: var(--lh-hero);
+  letter-spacing: -0.038em;
+  text-wrap: balance;
+}
+
+.t-lede {
+  font-size: var(--t-lede);
+  line-height: 1.55;
+  color: var(--ink-2);
+  text-wrap: pretty;
+  max-width: var(--measure);
+}
+
+.t-small {
+  font-size: var(--t-small);
+}
+
+/* The utility face. Every label, metric and stratum name. */
+.label {
+  font-family: var(--f-mono);
+  font-size: var(--t-label);
+  font-weight: 500;
+  letter-spacing: var(--tr-label);
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.mono {
+  font-family: var(--f-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Digits that line up in a column must always be tabular. */
+.num,
+table,
+time,
+[data-metric] {
+  font-variant-numeric: tabular-nums;
+}
+
+.prose {
+  max-width: var(--measure-prose);
+}
+.prose > * + * {
+  margin-top: var(--sp-base);
+}
+.prose h2 {
+  margin-top: var(--sp-loose);
+}
+.prose h3 {
+  margin-top: var(--sp-roomy);
+}
+
+/* ---------------------------------------------------------------- layout */
+.shell {
+  width: 100%;
+  max-width: var(--max);
+  margin-inline: auto;
+  padding-inline: var(--margin);
+}
+
+.grid12 {
+  display: grid;
+  grid-template-columns: repeat(var(--col), minmax(0, 1fr));
+  gap: var(--gutter);
+}
+.grid12 > * {
+  min-width: 0;
+}
+
+/* Section rhythm is deliberately uneven — a pivotal section earns more room
+   than a connective one. Uniform section padding is the strongest template
+   signal at page level (Specification, Phase 11, item 2). */
+.section {
+  padding-block: var(--sp-sect);
+}
+.section--pivot {
+  padding-block: var(--sp-pivot);
+}
+.section--flush {
+  padding-block: 0;
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+}
+.stack--tight {
+  gap: var(--sp-tight);
+}
+.stack--snug {
+  gap: var(--sp-snug);
+}
+.stack--base {
+  gap: var(--sp-base);
+}
+.stack--roomy {
+  gap: var(--sp-roomy);
+}
+.stack--loose {
+  gap: var(--sp-loose);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-snug);
+  flex-wrap: wrap;
+}
+
+.hairline {
+  border: 0;
+  border-top: var(--border-hair);
+}
+
+/* Wide content never makes the page scroll sideways. */
+.scroll-x {
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+}
+
+/* ------------------------------------------------------------------ links */
+a {
+  color: var(--accent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.18em;
+  transition: color var(--d-hover) var(--ease-out);
+}
+a:hover {
+  color: var(--ink);
+}
+
+.link-quiet {
+  color: var(--ink);
+  text-decoration: none;
+  border-bottom: 1px solid var(--rule-live);
+  transition:
+    color var(--d-hover) var(--ease-out),
+    border-color var(--d-hover) var(--ease-out);
+}
+.link-quiet:hover {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+
+/* --------------------------------------------------------------- buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-tight);
+  min-height: 44px;
+  padding: 0 var(--sp-roomy);
+  border: 1px solid var(--rule-live);
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: var(--ink);
+  font-family: var(--f-mono);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-decoration: none;
+  /* Named properties only — never `transition: all`. */
+  transition:
+    background-color var(--d-hover) var(--ease-out),
+    border-color var(--d-hover) var(--ease-out),
+    color var(--d-hover) var(--ease-out),
+    transform var(--d-press) var(--ease-out);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+}
+
+.btn:active:not(:disabled) {
+  transform: scale(0.96);
+}
+
+.btn:disabled,
+.btn[aria-disabled='true'] {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn--primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--ground);
+}
+@media (hover: hover) and (pointer: fine) {
+  .btn--primary:hover {
+    background: var(--accent-deep);
+    border-color: var(--accent-deep);
+    color: var(--ground);
+  }
+}
+
+.btn--ghost {
+  border-color: transparent;
+  color: var(--ink-3);
+}
+@media (hover: hover) and (pointer: fine) {
+  .btn--ghost:hover {
+    color: var(--ink);
+    border-color: var(--rule);
+  }
+}
+
+/* ------------------------------------------------------------------ focus
+   One visible focus treatment everywhere. Never removed, never colour-only. */
+:focus {
+  outline: none;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: var(--radius-control);
+}
+
+/* ------------------------------------------------------------- skip link */
+.skip-link {
+  position: absolute;
+  left: var(--sp-base);
+  top: var(--sp-base);
+  z-index: var(--z-skip);
+  padding: var(--sp-snug) var(--sp-base);
+  background: var(--accent);
+  color: var(--ground);
+  font-family: var(--f-mono);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-decoration: none;
+  /* Off-screen until focused, rather than display:none, so it stays reachable. */
+  transform: translateY(calc(-100% - var(--sp-base) * 2));
+  transition: transform var(--d-ui) var(--ease-out);
+}
+.skip-link:focus-visible {
+  transform: translateY(0);
+}
+
+/* ------------------------------------------------------------------ forms */
+.field {
+  width: 100%;
+  min-height: 44px;
+  padding: var(--sp-snug) var(--sp-base);
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-control);
+  color: var(--ink);
+  font-family: var(--f-body);
+  font-size: 16px; /* 16px minimum prevents iOS zoom-on-focus */
+  transition:
+    border-color var(--d-hover) var(--ease-out),
+    background-color var(--d-hover) var(--ease-out);
+}
+.field:hover {
+  border-color: var(--rule-live);
+}
+.field:focus-visible {
+  border-color: var(--accent);
+  outline-offset: 0;
+}
+.field::placeholder {
+  color: var(--ink-4);
+}
+.field[aria-invalid='true'] {
+  border-color: var(--bad);
+}
+
+.field-label {
+  display: block;
+  margin-bottom: var(--sp-tight);
+  font-family: var(--f-mono);
+  font-size: var(--t-label);
+  letter-spacing: var(--tr-label);
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+/* Errors say what to do, and are never signalled by colour alone. */
+.field-error {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-tight);
+  margin-top: var(--sp-tight);
+  color: var(--bad);
+  font-size: var(--t-small);
+}
+.field-error::before {
+  content: '!';
+  font-family: var(--f-mono);
+  font-weight: 600;
+  flex: none;
+}
+
+fieldset {
+  border: 0;
+  padding: 0;
+  min-width: 0;
+}
+
+/* ------------------------------------------------------------------ states
+   Loading, empty and error surfaces. Designed, not implied. */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--ground-2) 25%,
+    var(--surface) 50%,
+    var(--ground-2) 75%
+  );
+  background-size: 200% 100%;
+  animation: skeleton 1.4s var(--ease-lin) infinite;
+}
+@keyframes skeleton {
+  to {
+    background-position: -200% 0;
+  }
+}
+
+.state {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--sp-snug);
+  padding: var(--sp-loose);
+  border: 1px dashed var(--rule);
+  color: var(--ink-3);
+}
+.state__title {
+  font-family: var(--f-display);
+  font-size: var(--t-h3);
+  font-weight: 600;
+  color: var(--ink);
+  letter-spacing: var(--tr-h3);
+}
+.state--error {
+  border-style: solid;
+  border-color: var(--bad);
+}
+
+/* ------------------------------------------------------------------ table */
+.table-wrap {
+  overflow-x: auto;
+  border: var(--border-hair);
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--f-mono);
+  font-size: 12px;
+  line-height: 1.5;
+}
+th {
+  text-align: left;
+  padding: var(--sp-snug) var(--sp-base);
+  background: var(--ground-2);
+  border-bottom: var(--border-hair);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  white-space: nowrap;
+}
+td {
+  padding: var(--sp-snug) var(--sp-base);
+  border-bottom: var(--border-hair);
+  color: var(--ink-2);
+  vertical-align: top;
+}
+tr:last-child td {
+  border-bottom: 0;
+}
+
+/* ------------------------------------------------------- annotation rail
+   The specification's actual product: one specific, non-obvious sentence per
+   stratum. Styled as a drafting-sheet margin note. */
+.annotation {
+  border-left: 2px solid var(--stratum, var(--accent));
+  padding-left: var(--sp-base);
+}
+.annotation__eyebrow {
+  font-family: var(--f-mono);
+  font-size: var(--t-label);
+  letter-spacing: var(--tr-label);
+  text-transform: uppercase;
+  color: var(--stratum, var(--accent));
+  margin-bottom: var(--sp-tight);
+}
+.annotation__body {
+  font-size: var(--t-small);
+  line-height: 1.6;
+  color: var(--ink-2);
+  max-width: 44ch;
+}
+
+/* --------------------------------------------------------------- utility */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+.full-bleed {
+  width: 100vw;
+  margin-inline: calc(50% - 50vw);
+}
