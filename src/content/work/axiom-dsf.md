@@ -5,6 +5,7 @@ year: 2026
 problem: Generated code arrives faster than any human can review it, so teams either trust it blindly or stop using it.
 disciplines: [product design, front-end, systems architecture, data visualisation]
 fidelity: live
+liveUrl: https://axiomdsf.suryamuruganms40.workers.dev/#/console
 featured: true
 order: 2
 strata:

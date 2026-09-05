@@ -194,7 +194,14 @@ for (const mode of ['light', 'dark']) {
         failures.push({ route, mode, name, k: 'load-timeout' });
         continue;
       }
-      if (!res || res.status() >= 400) {
+      /**
+       * The error page is supposed to return 404. Auditing it matters — it is
+       * a real page with a real layout — but treating its correct status as a
+       * failure meant the gate reported six red lines on every clean run, and
+       * a gate that always shows red is a gate nobody reads.
+       */
+      const expected = route === '/404' ? 404 : 200;
+      if (!res || (res.status() >= 400 && res.status() !== expected)) {
         failures.push({ route, mode, name, k: 'http-' + (res ? res.status() : 'none') });
         continue;
       }

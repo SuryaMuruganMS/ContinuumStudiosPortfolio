@@ -6,7 +6,7 @@
   // itself is a fully static Astro build; `worker.ts` exists solely to
   // answer POST /api/commission, which cannot be a file.
   // ---------------------------------------------------------------------
-  "name": "continuumstudiosportfolio",
+  "name": "continuumstudios",
   "main": "./worker.ts",
   "compatibility_date": "2025-09-01",
 

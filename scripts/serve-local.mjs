@@ -21,14 +21,15 @@ import { createServer } from 'node:http';
 import { readFile, stat } from 'node:fs/promises';
 import { existsSync, readFileSync } from 'node:fs';
 import { extname, join, normalize } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { deliverCommission } from '../src/lib/commission-mail.ts';
 
-const ROOT = new URL('../dist/', import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1');
+const ROOT = fileURLToPath(new URL('../dist/', import.meta.url));
 const PORT = Number(process.env.PORT ?? 4321);
 
 /** Minimal .env reader — no dependency for `KEY=value` lines. */
 function loadEnv() {
-  const file = new URL('../.env', import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1');
+  const file = fileURLToPath(new URL('../.env', import.meta.url));
   if (!existsSync(file)) return;
   for (const line of readFileSync(file, 'utf8').split(/\r?\n/)) {
     const m = /^\s*([A-Z0-9_]+)\s*=\s*(.*)\s*$/.exec(line);

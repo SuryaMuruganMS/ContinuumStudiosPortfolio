@@ -27,6 +27,8 @@ interface Props {
   cover?: string;
   /** A project still being built says so rather than looking finished. */
   status?: 'published' | 'in-progress';
+  /** The deployed site, where it is public. Renders a direct link if set. */
+  liveUrl?: string;
 }
 
 const {
@@ -40,7 +42,11 @@ const {
   width = 'bleed',
   cover,
   status = 'published',
+  liveUrl,
 } = Astro.props;
+
+/** Shown beside the link so a reader sees where it goes before clicking. */
+const liveHost = liveUrl ? new URL(liveUrl).hostname : null;
 ---
 
 <article
@@ -79,6 +85,21 @@ const {
   <ul class="plate__disciplines" role="list">
     {disciplines.map((d) => <li class="mono">{d}</li>)}
   </ul>
+
+  {
+    liveUrl && (
+      <p class="plate__live">
+        <a class="plate__live-link" href={liveUrl} target="_blank" rel="noopener noreferrer">
+          <span class="plate__live-dot" aria-hidden="true" />
+          <span class="mono">Open the live site</span>
+          <span class="plate__live-arrow" aria-hidden="true">
+            &#8599;
+          </span>
+        </a>
+        <span class="mono plate__live-host">{liveHost}</span>
+      </p>
+    )
+  }
 
   <div class="plate__strata" role="list" aria-label="Layers in this deconstruction">
     {
@@ -210,6 +231,63 @@ const {
     color: var(--ink-3);
     padding: 3px 8px;
     border: var(--border-hair);
+  }
+
+  /* The one claim on this plate a reader can check without trusting us.
+     Above the stretched title link (z-index 1) so it stays independently
+     clickable, and marked with the host so nobody clicks blind. */
+  .plate__live {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--sp-tight);
+    margin-top: var(--sp-hair);
+  }
+  .plate__live-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    /* 44px is the touch target; the visual box stays small. */
+    min-height: 32px;
+    padding: 5px 11px;
+    border: 1px solid var(--accent);
+    color: var(--ink);
+    text-decoration: none;
+    font-size: 10.5px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    transition:
+      background-color var(--d-hover) var(--ease-out),
+      color var(--d-hover) var(--ease-out);
+  }
+  .plate__live-dot {
+    width: 7px;
+    height: 7px;
+    flex: none;
+    background: var(--accent);
+  }
+  .plate__live-arrow {
+    font-size: 12px;
+    line-height: 1;
+  }
+  .plate__live-host {
+    font-size: 10px;
+    letter-spacing: 0.06em;
+    color: var(--ink-4);
+    /* A long host must not push the plate wider than its column. */
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .plate__live-link:hover {
+      background: var(--accent);
+      color: var(--ground);
+    }
+    .plate__live-link:hover .plate__live-dot {
+      background: var(--ground);
+    }
   }
 
   .plate__strata {

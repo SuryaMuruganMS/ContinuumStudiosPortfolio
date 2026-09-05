@@ -68,6 +68,19 @@ const work = defineCollection({
      * can see it is a real thing and not six cropped hero shots.
      */
     gallery: z.array(z.object({ src: z.string(), caption: z.string().min(10) })).optional(),
+    /**
+     * The deployed site, where one is public.
+     *
+     * A portfolio asking to be trusted with a build should let a reader open
+     * the build. Screenshots are the studio's account of its own work; the
+     * running site is the only claim here a visitor can check without taking
+     * our word for it, so where one exists it is linked from every surface
+     * the project appears on.
+     *
+     * Optional because not every project can be shown — client work behind a
+     * login, or something not finished.
+     */
+    liveUrl: z.string().url().optional(),
     featured: z.boolean().default(false),
     order: z.number().default(99),
     /**

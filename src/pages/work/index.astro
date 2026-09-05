@@ -65,6 +65,7 @@ const COVERS: Record<string, string> = {
                 year={w.data.year}
                 problem={w.data.problem}
                 status={w.data.status}
+                liveUrl={w.data.liveUrl}
                 disciplines={w.data.disciplines}
                 strata={w.data.strata.map((s) => s.id as StratumId)}
                 cover={optionalAsset(COVERS[w.id])}
