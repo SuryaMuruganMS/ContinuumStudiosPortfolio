@@ -9,12 +9,11 @@ import svelte from '@astrojs/svelte';
  * specification's performance budgets reachable — a site that renders per
  * request cannot hold a sub-1.2s LCP on a cold edge cache.
  *
- * The one dynamic surface, the Commission Desk's form endpoint, is a native
- * Cloudflare Pages Function in `functions/api/commission.ts` rather than an
- * Astro on-demand route. That keeps the whole Astro build static and removes
- * the adapter entirely: an adapter exists to run server routes, and there are
- * none. Pages Functions are the native Cloudflare Pages mechanism for this,
- * so deployment is unchanged.
+ * The one dynamic surface, the Commission Desk's form endpoint, is handled by
+ * `worker.ts` — a Cloudflare Worker that fronts this build and answers the one
+ * route that cannot be a file. That keeps the whole Astro build static and
+ * removes the adapter entirely: an adapter exists to run server routes, and
+ * there are none.
  */
 export default defineConfig({
   site: 'https://continuumstudios.co',

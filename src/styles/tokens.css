@@ -192,7 +192,7 @@
        theme read as neon rather than merely dark, and at this alpha they
        never touch text contrast. */
     --halo-1: rgb(168 85 247 / 0.13);
-    --halo-2: rgb(45 226 230 / 0.10);
+    --halo-2: rgb(45 226 230 / 0.1);
     --glow-accent: 0 0 26px -6px rgb(45 226 230 / 0.55);
     --glow-soft: 0 0 18px -8px rgb(168 85 247 / 0.45);
     --plate-glow: 0 0 0 1px rgb(45 226 230 / 0.09), 0 18px 48px -28px rgb(0 0 0 / 0.9);
@@ -241,7 +241,7 @@
      theme read as neon rather than merely dark, and at this alpha they
      never touch text contrast. */
   --halo-1: rgb(168 85 247 / 0.13);
-  --halo-2: rgb(45 226 230 / 0.10);
+  --halo-2: rgb(45 226 230 / 0.1);
   --glow-accent: 0 0 26px -6px rgb(45 226 230 / 0.55);
   --glow-soft: 0 0 18px -8px rgb(168 85 247 / 0.45);
   --plate-glow: 0 0 0 1px rgb(45 226 230 / 0.09), 0 18px 48px -28px rgb(0 0 0 / 0.9);

@@ -21,7 +21,6 @@ const flagship = shown[0];
  */
 const WIDTHS = ['bleed', 'inset', 'bleed'] as const;
 
-
 /**
  * Every figure here is one a reader can go and verify. That rules out the
  * numbers a studio site usually opens with — years in business, projects
@@ -150,7 +149,9 @@ const WORK_TYPES = [
     <div class="shell stack stack--loose">
       <header class="stack stack--tight reveal">
         <p class="label">Selected work</p>
-        <h2>{shown.length === 1 ? 'One, shown properly.' : `${shown.length}, shown properly.`}</h2>
+        <h2>
+          {shown.length === 1 ? 'One, shown properly.' : `${shown.length}, shown properly.`}
+        </h2>
         <p class="t-lede">
           Depth beats breadth. We would rather take one project apart completely than list ten
           we cannot say anything specific about.
@@ -169,7 +170,7 @@ const WORK_TYPES = [
                   year={w.data.year}
                   problem={w.data.problem}
                   status={w.data.status}
-                status={w.data.status}
+                  status={w.data.status}
                   disciplines={w.data.disciplines}
                   strata={w.data.strata.map((s) => s.id as StratumId)}
                   width={WIDTHS[i] ?? 'bleed'}

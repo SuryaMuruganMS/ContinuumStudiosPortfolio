@@ -23,8 +23,7 @@ const { sticky = true } = Astro.props;
  */
 const MARK_LIGHT = '/brand/continuum-mark-light.webp';
 const MARK_DARK = '/brand/continuum-mark-dark.webp';
-const hasMark =
-  existsSync(`public${MARK_LIGHT}`) && existsSync(`public${MARK_DARK}`);
+const hasMark = existsSync(`public${MARK_LIGHT}`) && existsSync(`public${MARK_DARK}`);
 const path = Astro.url.pathname;
 
 const NAV = [
@@ -42,8 +41,20 @@ const isCurrent = (href: string) => path === href || path.startsWith(href + '/')
       {
         hasMark ? (
           <span class="mark__art" aria-hidden="true">
-            <img class="mark__img mark__img--light" src={MARK_LIGHT} alt="" width="28" height="28" />
-            <img class="mark__img mark__img--dark" src={MARK_DARK} alt="" width="28" height="28" />
+            <img
+              class="mark__img mark__img--light"
+              src={MARK_LIGHT}
+              alt=""
+              width="28"
+              height="28"
+            />
+            <img
+              class="mark__img mark__img--dark"
+              src={MARK_DARK}
+              alt=""
+              width="28"
+              height="28"
+            />
           </span>
         ) : (
           <span class="mark__glyph" aria-hidden="true">

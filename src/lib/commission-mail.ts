@@ -5,14 +5,14 @@ import { SITE } from './site.ts';
  * Delivery logic for the Commission Desk, kept separate from any one runtime.
  *
  * It is imported by two callers that cannot share a runtime:
- *   - `functions/api/commission.ts` — the Cloudflare Pages Function (production)
- *   - `scripts/serve-local.mjs`     — a plain Node server (local verification)
+ *   - `worker.ts`               — the Cloudflare Worker (production)
+ *   - `scripts/serve-local.mjs` — a plain Node server (local verification)
  *
- * Pages Functions do not run under `astro dev` or `astro preview`, and on this
- * machine `wrangler pages dev` cannot start workerd at all. Without a shared
- * module the local server would have had to re-implement the brief rendering
- * and the send, which is exactly the kind of duplicate that drifts and then
- * lies about what production does.
+ * The Worker does not run under `astro dev` or `astro preview`, and on this
+ * machine `wrangler dev` cannot start workerd at all. Without a shared module
+ * the local server would have had to re-implement the brief rendering and the
+ * send, which is exactly the kind of duplicate that drifts and then lies about
+ * what production does.
  *
  * Nothing here touches Node or Workers built-ins — only `fetch` — so it runs
  * unchanged on both.

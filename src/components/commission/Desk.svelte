@@ -172,8 +172,8 @@
              Saying "sent" here would be a lie the visitor only discovers by
              waiting two days for a reply that is never coming. -->
         <p class="t-lede">
-          Your brief is ready to read below — but this deployment could not email it. Send it
-          to us directly and we will pick it up.
+          Your brief is ready to read below — but this deployment could not email it. Send it to
+          us directly and we will pick it up.
         </p>
         <p class="desk__fallback">
           <a class="link-quiet" href={`mailto:${SITE.email}`}>{SITE.email}</a>

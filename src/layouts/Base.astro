@@ -60,7 +60,12 @@ const canonical = new URL(Astro.url.pathname, Astro.site ?? SITE.url);
       })();
     </script>
 
-    <link rel="alternate" type="application/rss+xml" title={`${SITE.name} notes`} href="/rss.xml" />
+    <link
+      rel="alternate"
+      type="application/rss+xml"
+      title={`${SITE.name} notes`}
+      href="/rss.xml"
+    />
 
     <!-- Only the two faces that render above the fold. Preloading the mono
          cuts would compete with the LCP element, which is the headline. -->

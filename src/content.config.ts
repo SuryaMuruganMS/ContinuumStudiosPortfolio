@@ -67,9 +67,7 @@ const work = defineCollection({
      * the argument; these are the rest of the product, shown once so a reader
      * can see it is a real thing and not six cropped hero shots.
      */
-    gallery: z
-      .array(z.object({ src: z.string(), caption: z.string().min(10) }))
-      .optional(),
+    gallery: z.array(z.object({ src: z.string(), caption: z.string().min(10) })).optional(),
     featured: z.boolean().default(false),
     order: z.number().default(99),
     /**

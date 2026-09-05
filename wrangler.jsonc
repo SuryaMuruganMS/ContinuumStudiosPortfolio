@@ -1,0 +1,30 @@
+{
+  // ---------------------------------------------------------------------
+  // Continuum Studios — Worker + Static Assets
+  //
+  // The only one of the three sites that needs a script at all. The site
+  // itself is a fully static Astro build; `worker.ts` exists solely to
+  // answer POST /api/commission, which cannot be a file.
+  // ---------------------------------------------------------------------
+  "name": "continuumstudiosportfolio",
+  "main": "./worker.ts",
+  "compatibility_date": "2025-09-01",
+
+  "assets": {
+    "directory": "./dist",
+
+    // Gives worker.ts `env.ASSETS.fetch()` so it can hand anything that is
+    // not the commission endpoint straight back to the asset server.
+    "binding": "ASSETS",
+
+    // Astro builds src/pages/404.astro to dist/404.html.
+    "not_found_handling": "404-page",
+  },
+
+  "observability": {
+    // Console output from the commission endpoint — the warning when
+    // RESEND_API_KEY is missing, and the Resend status on a failed send.
+    // Without this those logs are discarded and a broken form is silent.
+    "enabled": true,
+  },
+}

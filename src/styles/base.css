@@ -31,8 +31,7 @@ body {
      light, so this is one rule for both themes rather than a themed override. */
   background:
     radial-gradient(80ch 70ch at 12% -10%, var(--halo-1), transparent 70%),
-    radial-gradient(70ch 60ch at 92% 8%, var(--halo-2), transparent 70%),
-    var(--ground);
+    radial-gradient(70ch 60ch at 92% 8%, var(--halo-2), transparent 70%), var(--ground);
   background-attachment: fixed, fixed, scroll;
   color: var(--ink);
   font-family: var(--f-body);

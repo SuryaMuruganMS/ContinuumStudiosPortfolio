@@ -151,7 +151,8 @@
               <div class="plane-art" aria-hidden="true">
                 <div class="plane-art__stack">
                   {#each [...strata.keys()] as k (k)}
-                    <span class="plane-art__sheet" class:is-lit={k === i} style="--k: {k}"></span>
+                    <span class="plane-art__sheet" class:is-lit={k === i} style="--k: {k}"
+                    ></span>
                   {/each}
                 </div>
               </div>

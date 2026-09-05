@@ -1,10 +1,10 @@
 /**
  * Serve `dist/` AND answer /api/commission locally.
  *
- * Why this exists: the commission endpoint is a Cloudflare Pages Function, and
- * Pages Functions do not run under `astro dev` or `astro preview` — both serve
+ * Why this exists: the commission endpoint lives in a Cloudflare Worker, which
+ * does not run under `astro dev` or `astro preview` — both serve
  * static files only, so posting the form locally returns 404 and the desk looks
- * broken when it is not. The usual answer is `wrangler pages dev`, but workerd
+ * broken when it is not. The usual answer is `wrangler dev`, but workerd
  * crashes on this machine with an access violation before it binds a port.
  *
  * So: plain Node, no runtime to install, importing the very same

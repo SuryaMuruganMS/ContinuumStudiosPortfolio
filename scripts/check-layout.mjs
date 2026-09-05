@@ -216,7 +216,9 @@ for (const mode of ['light', 'dark']) {
 }
 await browser.close();
 
-console.log(`\n  LAYOUT — ${ROUTES.length} routes x 2 modes x ${WIDTHS.length} widths x 3 scroll positions`);
+console.log(
+  `\n  LAYOUT — ${ROUTES.length} routes x 2 modes x ${WIDTHS.length} widths x 3 scroll positions`,
+);
 console.log(`  ${checks} audits run\n`);
 
 if (!failures.length) {
@@ -233,8 +235,16 @@ for (const f of failures) {
 for (const [k, list] of byKind) {
   console.log(`  ${k}  (${list.length})`);
   for (const f of list.slice(0, 8)) {
-    const detail = f.a ? `${f.a}  vs  ${f.b}` : f.chrome ? `${f.chrome} over ${f.text}` : f.el ? `${f.el}${f.child ? ' > ' + f.child : ''}${f.by ? ' by ' + f.by : ''}` : '';
-    console.log(`     ${f.route} · ${f.mode} · ${f.name} · scroll ${f.scroll ?? '-'}  ${detail}`);
+    const detail = f.a
+      ? `${f.a}  vs  ${f.b}`
+      : f.chrome
+        ? `${f.chrome} over ${f.text}`
+        : f.el
+          ? `${f.el}${f.child ? ' > ' + f.child : ''}${f.by ? ' by ' + f.by : ''}`
+          : '';
+    console.log(
+      `     ${f.route} · ${f.mode} · ${f.name} · scroll ${f.scroll ?? '-'}  ${detail}`,
+    );
   }
   if (list.length > 8) console.log(`     … ${list.length - 8} more`);
   console.log('');

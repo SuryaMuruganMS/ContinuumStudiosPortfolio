@@ -41,12 +41,7 @@ const { src, alt, label, tint, ratio = '16 / 10', eager = false } = Astro.props;
   </div>
 
   <div class="shot__screen">
-    <img
-      src={src}
-      alt={alt}
-      loading={eager ? 'eager' : 'lazy'}
-      decoding="async"
-    />
+    <img src={src} alt={alt} loading={eager ? 'eager' : 'lazy'} decoding="async" />
     <span class="shot__mark shot__mark--tl" aria-hidden="true"></span>
     <span class="shot__mark shot__mark--tr" aria-hidden="true"></span>
     <span class="shot__mark shot__mark--bl" aria-hidden="true"></span>
