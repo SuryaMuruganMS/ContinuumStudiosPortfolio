@@ -6,7 +6,7 @@ problem: A designer's portfolio has to argue for judgement, not just show output
 disciplines: [art direction, front-end, interaction design]
 fidelity: annotated
 featured: true
-order: 3
+order: 4
 status: in-progress
 strata:
   - id: brief

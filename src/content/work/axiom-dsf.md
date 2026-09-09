@@ -7,7 +7,7 @@ disciplines: [product design, front-end, systems architecture, data visualisatio
 fidelity: live
 liveUrl: https://axiomdsf.suryamuruganms40.workers.dev/#/console
 featured: true
-order: 2
+order: 3
 strata:
   - id: brief
     image: /work/axiom/01-brief-new-run.webp
