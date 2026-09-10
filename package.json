@@ -23,7 +23,9 @@
     "verify": "npm run format:check && npm run lint && npm run check && npm run check:svelte && npm run build && npm run budgets",
     "preview:worker": "wrangler dev",
     "fonts": "python scripts/subset-fonts.py",
-    "serve": "node scripts/serve-local.mjs"
+    "serve": "node scripts/serve-local.mjs",
+    "deploy": "npm run build && wrangler deploy",
+    "deploy:dry": "wrangler deploy --dry-run"
   },
   "dependencies": {
     "@astrojs/svelte": "^9.0.1",
@@ -48,6 +50,7 @@
     "svelte-check": "^4.7.6",
     "svelte-eslint-parser": "^1.8.1",
     "typescript": "^5.9.0",
-    "typescript-eslint": "^8.69.0"
+    "typescript-eslint": "^8.69.0",
+    "wrangler": "^4.131.0"
   }
 }
