@@ -27,10 +27,10 @@ strata:
   - id: depth
     image: /work/marmaray/03-depth-section.webp
     note: >-
-      The network is drawn three ways from one set of stations: Beck's diagram, the real
-      coastline, and the tunnel in section with chainage across and elevation down. They
-      morph rather than crossfade, which is the only way to show what a transit diagram
-      costs — you can watch the compression happen.
+      The network is drawn two ways from one set of stations: the real coastline it opens
+      on, and Beck's diagram. They morph rather than crossfade, which is the only way to
+      show what a transit diagram costs — you can watch the compression happen, station by
+      station, instead of being told about it.
   - id: data
     image: /work/marmaray/04-data-map.webp
     note: >-
@@ -66,18 +66,25 @@ gallery:
       a list somebody wrote.
   - src: /work/marmaray/09-dig.webp
     caption: >-
-      The Yenikapı section. Layer heights are the real depths, so the Ottoman band is
-      genuinely that empty and the Byzantine harbour is genuinely that thick.
+      The Yenikapı section. Band heights are the real excavated depths, so the Byzantine
+      harbour is genuinely that thick — and each band carries the three notes a section
+      drawing always has, beside a drawing of the whole 22 m column with the current layer
+      lit.
   - src: /work/marmaray/10-arabic.webp
     caption: >-
       Arabic. The prose flips; the crossing does not. A compass bearing is not a text
       direction, so the track, the map and the section stay pinned left-to-right while
       everything around them reverses.
-  - src: /work/marmaray/11-planview.webp
+  - src: /work/marmaray/11-world.webp
     caption: >-
-      Plan view — the same content as an ordinary vertical document. WCAG 1.4.10 forbids
-      requiring two-dimensional scrolling, so the sideways reading has to be a presentation
-      rather than the only way in.
+      Keep zooming out and İstanbul stops being the frame. Natural Earth's land in the same
+      Mercator as the city window, three copies at ±360° so the pan wraps — because a metro
+      map answers "how do I get there" and almost never answers "where is this".
+  - src: /work/marmaray/12-planner.webp
+    caption: >-
+      The planner draws the whole network with the journey lit through it. A route printed
+      as a column of station names is a route to somebody who already knows the city and a
+      list of words to everybody else.
 metrics:
   - label: Layout audits per run
     after: '448'
@@ -87,11 +94,11 @@ metrics:
     source: scripts/check-contrast.mjs — 5 depth bands × 2 services
   - label: Languages
     after: '4'
-    source: English, Türkçe, العربية, Русский — 331 keys each
+    source: English, Türkçe, العربية, Русский — 377 keys each
   - label: JavaScript on the wire
     before: '150 KB budget'
-    after: '16 KB'
-    source: scripts/check-budgets.mjs, gzipped
+    after: '78 KB'
+    source: scripts/check-budgets.mjs, gzipped, whole site
 ---
 
 ## The shape is the argument
@@ -134,7 +141,20 @@ name that fits nowhere is not drawn, because at that scale it genuinely does not
 
 ## What went wrong
 
-Four things worth publishing.
+Six things worth publishing.
+
+**Every scroll-driven animation was dead in the shipped build.** Lightning CSS composes
+`animation-name`, `animation-timing-function` and `animation-fill-mode` back into the
+`animation` shorthand — and quietly folds `animation-timeline` in with them, where the
+shorthand resets it to `auto`. So every `animation-timeline: view()` on the site became a
+time-based animation that had already finished. The dev server does not minify, which is
+why nobody saw it, and a frozen horizontal rail looks exactly like a rail at scroll
+position zero, which is why nobody noticed. The fix is one line — `cssMinify: 'esbuild'`.
+
+**The layout gate had been auditing the dev server all along.** Same root: the thing that
+ships is `dist`, and the gate was pointed at `astro dev`. It refuses a dev server outright
+now, which also cleared four phantom reflow failures that were dev's own injected
+furniture rather than the page's.
 
 **The film band had never been visible.** Not once. The crossing's track panels carry the
 class `panel`, and so did a bordered-card utility in the base stylesheet — so every panel
