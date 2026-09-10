@@ -5,7 +5,7 @@ year: 2026
 problem: A railway's most interesting fact is a shape — thirteen kilometres east, sixty metres down — and a page that scrolls downwards cannot show it.
 disciplines: [art direction, front-end, cartography, information design, localisation]
 fidelity: live
-liveUrl: https://maramaymetro.suryamuruganms40.workers.dev/
+liveUrl: https://istanmetro.suryamuruganms40.workers.dev/
 featured: true
 order: 2
 status: published
