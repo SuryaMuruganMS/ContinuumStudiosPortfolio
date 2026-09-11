@@ -1,0 +1,379 @@
+/* ===========================================================================
+   CONTINUUM — PROJECTS
+   ---------------------------------------------------------------------------
+   The room leads with green. See the note at the top of tokens.css: one neon
+   per page, re-pointed at the role tokens so every control, rule and focus
+   ring on this page follows without knowing which colour it is wearing.
+   =========================================================================== */
+
+.room {
+  position: relative;
+  min-height: 100vh;
+}
+.room--projects {
+  --accent: var(--neon-green);
+  --accent-deep: var(--neon-green-deep);
+  --accent-soft: var(--neon-green-soft);
+  /* The wash behind the dust: a single low ellipse of the lead colour, so the
+     top of the page has somewhere for the flecks to be lit against. */
+  background:
+    radial-gradient(90% 46% at 28% -6%, var(--accent-soft) 0%, transparent 64%), var(--ground);
+}
+
+.pj {
+  position: relative;
+  z-index: 2;
+  padding: clamp(140px, 22vh, 220px) var(--margin) var(--sp-pivot);
+  max-width: var(--max);
+  margin-inline: auto;
+}
+
+/* ------------------------------------------------------------------- head */
+.pj__head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-base);
+  /*
+     Wide enough for the headline, and no wider.
+
+     This was `34ch`, which is a sensible measure for the lede and a disaster
+     for the title: `ch` resolves against the element's own font-size, so 34
+     characters of 17px body text is about 300px — and a 120px headline inside
+     a 300px box broke "projects," across two lines mid-word. The measure
+     belongs on the paragraph, which is the only thing here being read as
+     prose.
+  */
+  max-width: min(100%, 52rem);
+  margin-bottom: var(--sp-loose);
+}
+.pj__eyebrow {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-tight);
+  font-size: var(--t-label);
+  letter-spacing: var(--tr-label);
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.pj__n {
+  color: var(--accent);
+}
+.pj__n::before {
+  content: '';
+  display: inline-block;
+  width: 26px;
+  height: 1px;
+  margin-inline-end: var(--sp-tight);
+  background: currentColor;
+  vertical-align: middle;
+}
+
+.pj__title {
+  margin: 0;
+  /* Capped below the global hero size: two long words stacked need to clear
+     the right margin at 1440 without hyphenating. */
+  font-size: clamp(2.6rem, 7vw, 6.4rem);
+  line-height: var(--lh-hero);
+  letter-spacing: var(--tr-display);
+  font-weight: 400;
+  text-wrap: balance;
+}
+/* The two halves of the line are two faces, and the second is indented by a
+   character so the eye steps down rather than reading a block. */
+.pj__title-a {
+  display: block;
+  font-family: var(--f-display);
+  font-style: italic;
+  color: var(--ink);
+}
+.pj__title-b {
+  display: block;
+  font-family: var(--f-body);
+  font-weight: 500;
+  padding-inline-start: 0.09em;
+  color: var(--ink-2);
+}
+
+.pj__lede {
+  margin: 0;
+  max-width: 46ch;
+  font-size: var(--t-lede);
+  line-height: var(--lh-body);
+  color: var(--ink-3);
+}
+
+/* ---------------------------------------------------------------- filters */
+.pj__filters {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-snug);
+  padding-block: var(--sp-roomy);
+  border-top: 1px solid var(--rule);
+}
+.fbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--sp-tight);
+}
+.fbar__k {
+  font-size: var(--t-label);
+  letter-spacing: var(--tr-label);
+  text-transform: uppercase;
+  color: var(--ink-4);
+  width: 11rem;
+  flex: none;
+}
+
+.pj__tally {
+  margin: 0 0 var(--sp-roomy);
+  font-size: var(--t-label);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-4);
+}
+
+/* ------------------------------------------------------------------- grid
+   Two columns, and the right one starts lower.
+
+   The offset is the whole reason a two-column grid of four things does not
+   read as a table. It is a translation rather than a margin so it costs
+   nothing to undo at narrow widths and never affects the height of the page.
+*/
+.pgrid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(40px, 6vw, 96px) clamp(24px, 4vw, 64px);
+}
+.pgrid > :nth-child(even) {
+  transform: translateY(clamp(32px, 7vw, 110px));
+}
+/* One result left: the offset would strand it halfway down an empty column. */
+.pgrid[data-thin] {
+  grid-template-columns: minmax(0, 34rem);
+}
+.pgrid[data-thin] > * {
+  transform: none;
+}
+
+/*
+   Leaving and arriving.
+
+   `data-out` is set by the filter before anything is hidden, so a card that is
+   going away has a frame to fall back and blur in. It is removed from the
+   layout only by `position: absolute` at the end of the transition — never by
+   `display: none`, which would snap the remaining cards into place while the
+   departing one was still visibly on screen.
+*/
+.pgrid__cell {
+  transition:
+    opacity var(--d-ui) var(--ease-out),
+    filter var(--d-ui) var(--ease-out),
+    transform var(--d-strat) var(--ease-glide);
+  transition-delay: calc(var(--i, 0) * 55ms);
+}
+.pgrid__cell[data-out] {
+  opacity: 0;
+  filter: blur(14px);
+  transform: translateY(18px) scale(0.97);
+  pointer-events: none;
+  position: absolute;
+  visibility: hidden;
+  transition-delay: 0ms;
+}
+
+/* ------------------------------------------------------------------- card */
+.pcard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-snug);
+}
+.pcard__hit {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-snug);
+  text-decoration: none;
+  color: inherit;
+}
+.pcard__frame {
+  position: relative;
+  display: block;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  border: 1px solid var(--rule);
+  border-radius: 14px;
+  background: var(--surface);
+  transition:
+    border-color var(--d-ui) var(--ease-out),
+    box-shadow var(--d-ui) var(--ease-out);
+}
+.pcard__img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition:
+    transform var(--d-reveal) var(--ease-glide),
+    opacity var(--d-page) var(--ease-out);
+}
+.pcard__img--hover {
+  opacity: 0;
+}
+.pcard__none {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  font-size: var(--t-label);
+  letter-spacing: var(--tr-label);
+  text-transform: uppercase;
+  color: var(--ink-4);
+}
+.pcard__idx {
+  position: absolute;
+  top: 12px;
+  inset-inline-start: 14px;
+  z-index: 2;
+  font-size: var(--t-label);
+  letter-spacing: 0.12em;
+  color: var(--ink);
+  mix-blend-mode: difference;
+}
+
+/* A single bar of the lead colour that crosses the frame on hover. It is the
+   cheapest possible "this is a link" and it reads as a scanner rather than as
+   a highlight, which suits a site about looking inside things. */
+.pcard__sweep {
+  position: absolute;
+  inset-inline: 0;
+  top: 0;
+  height: 2px;
+  background: var(--accent);
+  box-shadow: 0 0 22px 1px var(--accent);
+  opacity: 0;
+  transform: translateY(0);
+  transition:
+    opacity var(--d-hover) var(--ease-out),
+    transform var(--d-reveal) var(--ease-glide);
+}
+
+.pcard__hit:hover .pcard__frame,
+.pcard__hit:focus-visible .pcard__frame {
+  border-color: color-mix(in oklab, var(--accent) 55%, var(--rule));
+  box-shadow: 0 0 0 1px color-mix(in oklab, var(--accent) 22%, transparent);
+}
+.pcard__hit:hover .pcard__img--rest,
+.pcard__hit:focus-visible .pcard__img--rest {
+  transform: scale(1.04);
+  opacity: 0;
+}
+.pcard__hit:hover .pcard__img--hover,
+.pcard__hit:focus-visible .pcard__img--hover {
+  opacity: 1;
+  transform: scale(1.04);
+}
+/* A card with only one frame still answers: it just scales. */
+.pcard__hit:hover .pcard__frame:not(:has(.pcard__img--hover)) .pcard__img--rest,
+.pcard__hit:focus-visible .pcard__frame:not(:has(.pcard__img--hover)) .pcard__img--rest {
+  opacity: 1;
+}
+.pcard__hit:hover .pcard__sweep,
+.pcard__hit:focus-visible .pcard__sweep {
+  opacity: 1;
+  transform: translateY(clamp(140px, 24vw, 320px));
+}
+
+.pcard__meta {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.pcard__title {
+  font-family: var(--f-display);
+  font-size: clamp(1.5rem, 2.6vw, 2.1rem);
+  font-weight: 400;
+  line-height: 1.1;
+  letter-spacing: -0.015em;
+  color: var(--ink);
+  transition: color var(--d-hover) var(--ease-out);
+}
+.pcard__hit:hover .pcard__title,
+.pcard__hit:focus-visible .pcard__title {
+  color: var(--accent);
+}
+.pcard__line {
+  font-size: var(--t-label);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-4);
+}
+
+.pcard__strata {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px 10px;
+}
+.pcard__strata li {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--f-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-4);
+}
+.pcard__strata li::before {
+  content: '';
+  width: 5px;
+  height: 5px;
+  background: var(--s);
+}
+
+/* ------------------------------------------------------------------ empty */
+.pj__empty {
+  margin: var(--sp-loose) 0 0;
+  color: var(--ink-3);
+}
+.pj__empty button {
+  border: 0;
+  background: none;
+  padding: 0;
+  font: inherit;
+  color: var(--accent);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+/* ----------------------------------------------------------------- narrow */
+@media (max-width: 760px) {
+  .pgrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .pgrid > :nth-child(even) {
+    transform: none;
+  }
+  .fbar__k {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pgrid__cell,
+  .pcard__img,
+  .pcard__sweep {
+    transition-duration: 1ms;
+    transition-delay: 0ms;
+  }
+  .pcard__hit:hover .pcard__sweep {
+    display: none;
+  }
+}

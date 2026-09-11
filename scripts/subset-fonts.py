@@ -33,6 +33,11 @@ except ImportError:  # pragma: no cover
 
 ROOT = Path(__file__).resolve().parent.parent
 MODULES = ROOT / "node_modules"
+# Switzer and Gambetta come from Fontshare, which has no npm package, so the
+# upstream variable files are vendored. Checking them in is the point: the repo
+# can rebuild its own fonts without anybody being told where to download them
+# from, and the ITF Free Font License sits next to them.
+VENDOR = ROOT / "vendor" / "fonts"
 OUT = ROOT / "public" / "fonts"
 
 # Latin basic + Latin-1 punctuation, plus the specific marks this design uses.
@@ -61,14 +66,19 @@ UNICODES = ",".join(
 LAYOUT_FEATURES = "kern,liga,clig,calt,tnum,ccmp,mark,mkmk"
 
 SOURCES: list[tuple[str, Path]] = [
-    (
-        "bricolage-grotesque-var",
-        MODULES / "@fontsource-variable/bricolage-grotesque/files/bricolage-grotesque-latin-wght-normal.woff2",
-    ),
-    (
-        "newsreader-var",
-        MODULES / "@fontsource-variable/newsreader/files/newsreader-latin-wght-normal.woff2",
-    ),
+    # Sans, and the whole weight axis in one request. Switzer is the working
+    # face: navigation, body, buttons, captions, everything that is read rather
+    # than looked at.
+    ("switzer-var", VENDOR / "Switzer-Variable.woff2"),
+    # Display, roman and italic. The italic is not an afterthought here — it
+    # carries the headlines, and it is the single most expensive thing on the
+    # page to get wrong, so it gets its own file rather than a synthesised
+    # slant.
+    ("gambetta-var", VENDOR / "Gambetta-Variable.woff2"),
+    ("gambetta-var-italic", VENDOR / "Gambetta-VariableItalic.woff2"),
+    # Mono, kept from the old set. Two static cuts beat a variable axis when
+    # exactly two weights are used, and a monospaced label under a neon rule is
+    # the one thing this redesign did not need to reinvent.
     (
         "ibm-plex-mono-400",
         MODULES / "@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-400-normal.woff2",
@@ -87,6 +97,8 @@ def kb(n: int) -> str:
 def main() -> int:
     if not MODULES.exists():
         sys.exit("node_modules not found — run `npm install` first.")
+    if not VENDOR.exists():
+        sys.exit(f"{VENDOR.relative_to(ROOT)} not found — the Fontshare sources are vendored there.")
 
     OUT.mkdir(parents=True, exist_ok=True)
     before_total = 0

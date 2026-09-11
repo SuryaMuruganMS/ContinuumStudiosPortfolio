@@ -1,0 +1,256 @@
+/* ===========================================================================
+   CONTINUUM — CONTACT
+   ---------------------------------------------------------------------------
+   The room leads with orange. It is the only warm thing on the site and this
+   is the only page that should be warm: everywhere else is a record being
+   examined, and this is the one page where somebody is being asked to speak.
+   =========================================================================== */
+
+.room--contact {
+  --accent: var(--neon-orange);
+  --accent-deep: var(--neon-orange-deep);
+  --accent-soft: var(--neon-orange-soft);
+  background: var(--ground);
+  /* The scene is fixed and the page is barely taller than a screen, so the
+     whole thing is one composition rather than a document that scrolls. */
+  min-height: 100vh;
+  display: flex;
+}
+
+.ct {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--sp-pivot);
+  width: 100%;
+  max-width: var(--max);
+  margin-inline: auto;
+  padding: clamp(140px, 20vh, 200px) var(--margin) var(--sp-loose);
+}
+
+/* ------------------------------------------------------------------ plate */
+.ct__plate {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-base);
+  max-width: min(100%, 46rem);
+}
+
+.ct__eyebrow {
+  font-size: var(--t-label);
+  letter-spacing: var(--tr-label);
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.ct__title {
+  margin: 0;
+  font-size: clamp(3rem, 9vw, 7rem);
+  line-height: 0.9;
+  letter-spacing: var(--tr-display);
+  font-weight: 400;
+}
+/* Same device as the projects head — italic serif answered by the sans — with
+   the weight the other way round: there the second line is the statement, here
+   it is the thing being asked for, so it is the one set solid. */
+.ct__title-a {
+  display: block;
+  font-family: var(--f-display);
+  font-style: italic;
+  color: var(--ink-2);
+}
+.ct__title-b {
+  display: block;
+  font-family: var(--f-body);
+  font-weight: 600;
+  letter-spacing: -0.035em;
+  color: var(--ink);
+}
+
+.ct__lede {
+  margin: 0;
+  max-width: 44ch;
+  font-size: var(--t-lede);
+  line-height: var(--lh-body);
+  color: var(--ink-3);
+}
+
+/* ----------------------------------------------------------------- routes */
+.ct__routes {
+  margin-top: var(--sp-snug);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-roomy);
+}
+.ct__tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-tight);
+}
+.ct__tab {
+  gap: 10px;
+  padding: 9px 18px;
+  font-size: var(--t-body);
+  text-transform: none;
+}
+/* The arrow slides on hover and stays out once the tab is chosen — the
+   difference between "you could press this" and "you did". */
+.ct__arrow {
+  display: inline-block;
+  transform: translateX(-3px);
+  opacity: 0.5;
+  transition:
+    transform var(--d-ui) var(--ease-glide),
+    opacity var(--d-ui) var(--ease-out);
+}
+.ct__tab:hover .ct__arrow,
+.ct__tab.is-on .ct__arrow {
+  transform: translateX(2px);
+  opacity: 1;
+}
+
+.ct__panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-snug);
+  max-width: 40rem;
+}
+/* `display: flex` beats the user-agent rule for [hidden], so both panels were
+   on screen at once and the tabs appeared to do nothing. Any component that
+   sets `display` has to say this itself. */
+.ct__panel[hidden] {
+  display: none;
+}
+.ct__panel.is-in {
+  animation: ct-in var(--d-page) var(--ease-glide) both;
+}
+@keyframes ct-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.ct__line {
+  margin: 0;
+  font-size: var(--t-body);
+  line-height: var(--lh-tight);
+  color: var(--ink-2);
+}
+
+/*
+   The call to action is a line of type with a rule under it, not a button.
+
+   A filled button here would be the loudest thing on a page whose whole
+   argument is quiet, and the address is the message — it should be readable,
+   selectable and large, which a button label is not. The rule draws itself in
+   from the left on hover, which is all the affordance a line this size needs.
+*/
+.ct__cta {
+  position: relative;
+  align-self: flex-start;
+  padding-bottom: 10px;
+  font-family: var(--f-display);
+  font-size: clamp(1.4rem, 3.4vw, 2.4rem);
+  font-weight: 400;
+  letter-spacing: -0.015em;
+  color: var(--ink);
+  text-decoration: none;
+  transition: color var(--d-hover) var(--ease-out);
+}
+.ct__cta-rule {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  height: 1px;
+  background: var(--rule-live);
+}
+.ct__cta-rule::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--accent);
+  box-shadow: 0 0 18px -2px var(--accent);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform var(--d-page) var(--ease-glide);
+}
+.ct__cta:hover,
+.ct__cta:focus-visible {
+  color: var(--accent);
+}
+.ct__cta:hover .ct__cta-rule::after,
+.ct__cta:focus-visible .ct__cta-rule::after {
+  transform: scaleX(1);
+}
+
+.ct__note {
+  margin: 0;
+  font-size: var(--t-label);
+  letter-spacing: 0.06em;
+  color: var(--ink-4);
+}
+
+/* -------------------------------------------------------------------- who */
+.ct__who {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-base);
+  padding-top: var(--sp-roomy);
+  border-top: 1px solid var(--rule);
+}
+.ct__people {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
+  gap: var(--sp-roomy);
+  max-width: 62rem;
+}
+.ct__people li {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.ct__name {
+  font-family: var(--f-display);
+  font-size: 1.22rem;
+  color: var(--ink);
+}
+.ct__role {
+  font-size: var(--t-label);
+  letter-spacing: var(--tr-label);
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.ct__owns {
+  font-size: var(--t-small);
+  line-height: var(--lh-tight);
+  color: var(--ink-3);
+  max-width: 34ch;
+}
+.ct__where {
+  font-size: var(--t-label);
+  letter-spacing: 0.08em;
+  color: var(--ink-4);
+}
+
+/* ----------------------------------------------------------------- narrow */
+@media (max-width: 720px) {
+  .ct {
+    gap: var(--sp-loose);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ct__panel.is-in {
+    animation: none;
+  }
+}

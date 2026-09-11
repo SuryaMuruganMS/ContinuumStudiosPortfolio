@@ -1,0 +1,196 @@
+---
+/**
+ * Suspended dust.
+ *
+ * The reference site drifts butterflies across its rooms. Butterflies belong
+ * to that studio; this one is named for continuity and spends its whole site
+ * talking about core samples and exposed layers, so what drifts here is what
+ * drifts in a shaft of light over an excavation: mineral flecks, too light to
+ * fall, moving because the air is moving.
+ *
+ * WHY CANVAS AND NOT A HUNDRED DIVS
+ * Ninety composited layers with their own animations is ninety things for the
+ * compositor to keep in step, and it shows the moment anything else on the
+ * page moves. One canvas is one layer. It also lets the flecks respond to the
+ * pointer as a field — a parallax that pushes the near ones further than the
+ * far ones — which is the part that makes it read as depth rather than as
+ * decoration sliding about.
+ *
+ * WHAT IT COSTS
+ * About a kilobyte, no request, and it stops entirely when the tab is hidden
+ * or the page is scrolled past it. Under `prefers-reduced-motion` it is not
+ * created at all: the canvas stays empty and the page is simply black, which
+ * is a perfectly good page.
+ */
+interface Props {
+  /** Fleck count at 1440px. Scaled by viewport area below. */
+  density?: number;
+  class?: string;
+}
+const { density = 70, class: klass } = Astro.props;
+---
+
+<canvas class:list={['dust', klass]} data-dust data-density={density} aria-hidden="true"
+></canvas>
+
+<script>
+  const cv = document.querySelector<HTMLCanvasElement>('[data-dust]');
+  const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  if (cv && !still) {
+    const ctx = cv.getContext('2d', { alpha: true });
+    if (ctx) {
+      const BASE = Number(cv.dataset.density ?? 70);
+      let dpr = 1;
+      let w = 0;
+      let h = 0;
+      let raf = 0;
+      let running = false;
+
+      /** Pointer, in canvas space, smoothed. The parallax follows this. */
+      let px = 0;
+      let py = 0;
+      let sx = 0;
+      let sy = 0;
+
+      interface Fleck {
+        x: number;
+        y: number;
+        /** 0 far, 1 near. Drives size, speed, brightness and parallax. */
+        z: number;
+        vx: number;
+        vy: number;
+        r: number;
+        a: number;
+        /** Phase of the slow sideways sway, so no two drift alike. */
+        p: number;
+      }
+      let flecks: Fleck[] = [];
+
+      const make = (): Fleck => {
+        const z = Math.random();
+        return {
+          x: Math.random() * w,
+          y: Math.random() * h,
+          z,
+          // Upward, always: dust in a light shaft rises on the thermals. Near
+          // flecks move faster, which is the whole of the depth cue.
+          vx: (Math.random() - 0.5) * 0.06 * (0.3 + z),
+          vy: -(0.05 + Math.random() * 0.16) * (0.3 + z),
+          r: 0.4 + z * 1.5,
+          a: 0.1 + z * 0.42,
+          p: Math.random() * Math.PI * 2,
+        };
+      };
+
+      const size = () => {
+        const r = cv.getBoundingClientRect();
+        dpr = Math.min(devicePixelRatio || 1, 2);
+        w = r.width;
+        h = r.height;
+        cv.width = Math.round(w * dpr);
+        cv.height = Math.round(h * dpr);
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        // Count scales with area, so a phone does not run a desktop's budget
+        // and a 4K display does not look empty.
+        const n = Math.round(BASE * Math.min(1.4, (w * h) / (1440 * 900)));
+        flecks = Array.from({ length: n }, make);
+      };
+
+      const frame = () => {
+        raf = 0;
+        if (!running) return;
+        ctx.clearRect(0, 0, w, h);
+
+        // The pointer is chased rather than followed: an abrupt parallax reads
+        // as the whole field snapping sideways.
+        sx += (px - sx) * 0.045;
+        sy += (py - sy) * 0.045;
+        const t = performance.now() * 0.0004;
+
+        for (const f of flecks) {
+          f.x += f.vx + Math.sin(t + f.p) * 0.12 * f.z;
+          f.y += f.vy;
+          // Wrap rather than respawn: a fleck that vanishes and reappears is a
+          // fleck the eye catches.
+          if (f.y < -8) {
+            f.y = h + 8;
+            f.x = Math.random() * w;
+          }
+          if (f.x < -8) f.x = w + 8;
+          else if (f.x > w + 8) f.x = -8;
+
+          const ox = sx * (0.006 + f.z * 0.022);
+          const oy = sy * (0.006 + f.z * 0.022);
+          ctx.globalAlpha = f.a;
+          ctx.beginPath();
+          ctx.arc(f.x + ox, f.y + oy, f.r, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.globalAlpha = 1;
+        raf = requestAnimationFrame(frame);
+      };
+
+      const start = () => {
+        if (running) return;
+        running = true;
+        if (!raf) raf = requestAnimationFrame(frame);
+      };
+      const stop = () => {
+        running = false;
+        if (raf) cancelAnimationFrame(raf);
+        raf = 0;
+      };
+
+      /* The fill is read from CSS, so the colour lives with the rest of the
+         design rather than in this file. */
+      const paintColour = () => {
+        ctx.fillStyle = getComputedStyle(cv).color || '#fff';
+      };
+
+      size();
+      paintColour();
+      start();
+
+      addEventListener(
+        'resize',
+        () => {
+          size();
+          paintColour();
+        },
+        { passive: true },
+      );
+      addEventListener(
+        'pointermove',
+        (e) => {
+          px = e.clientX - innerWidth / 2;
+          py = e.clientY - innerHeight / 2;
+        },
+        { passive: true },
+      );
+      document.addEventListener('visibilitychange', () => (document.hidden ? stop() : start()));
+
+      // Off screen is off. The canvas is fixed to the viewport on this page,
+      // but the observer costs nothing and means a future full-page use does
+      // not have to remember.
+      if ('IntersectionObserver' in window) {
+        new IntersectionObserver((es) => {
+          for (const e of es) (e.isIntersecting ? start : stop)();
+        }).observe(cv);
+      }
+    }
+  }
+</script>
+
+<style>
+  .dust {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    /* `color` is the fleck colour — see paintColour() above. */
+    color: var(--accent);
+  }
+</style>

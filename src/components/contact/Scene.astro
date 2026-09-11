@@ -1,0 +1,173 @@
+---
+import { existsSync } from 'node:fs';
+
+/**
+ * The room behind the invitation.
+ *
+ * IT WORKS WITH NOTHING, AND IT IS BETTER WITH SOMETHING.
+ * The reference site puts a rendered 3D interior behind its contact page. We
+ * will have one — but a page that is broken until an asset arrives is a page
+ * that ships late, and a fallback nobody sees is a fallback nobody tests. So
+ * the drawn version below is the design, and the film is an upgrade to it:
+ * drop `contact-room.mp4` into `public/film/` and it takes over, with the
+ * drawing left underneath as the poster and the reduced-motion answer.
+ *
+ * WHAT IS DRAWN
+ * Three things, all CSS, all on the compositor:
+ *   - a raking shaft of the lead colour, as if a door were open off-frame
+ *   - a horizon wash, so the bottom of the frame has a floor
+ *   - a slow breath on both, 22 seconds, which is slow enough that a visitor
+ *     never catches it moving and long enough that the page is never the same
+ *     twice when they look up
+ *
+ * The scroll parallax is a custom property written from one rAF-throttled
+ * listener, not a per-frame style write per layer.
+ */
+const FILM = '/film/contact-room.mp4';
+const hasFilm = existsSync(`public${FILM}`);
+---
+
+<div class="scene" data-scene aria-hidden="true">
+  <div class="scene__shaft"></div>
+  <div class="scene__floor"></div>
+  <div class="scene__vignette"></div>
+  {
+    hasFilm && (
+      <video
+        class="scene__film"
+        src={FILM}
+        muted
+        loop
+        playsinline
+        preload="none"
+        data-scene-film
+      />
+    )
+  }
+</div>
+
+<script>
+  const scene = document.querySelector<HTMLElement>('[data-scene]');
+  if (scene) {
+    const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    /* The film is an enhancement in every sense: it is not fetched at all
+       under reduced motion, and it only starts once it has enough to play, so
+       the drawn room is never replaced by a black rectangle mid-download. */
+    const film = scene.querySelector<HTMLVideoElement>('[data-scene-film]');
+    if (film && !still) {
+      film.preload = 'auto';
+      film.addEventListener(
+        'canplay',
+        () => {
+          void film.play().catch(() => {});
+          scene.dataset.film = '1';
+        },
+        { once: true },
+      );
+    }
+
+    if (!still) {
+      let raf = 0;
+      const onScroll = () => {
+        if (raf) return;
+        raf = requestAnimationFrame(() => {
+          raf = 0;
+          // Normalised against a viewport rather than the document: this page
+          // is one screen tall plus a little, and the interesting range is the
+          // first screenful.
+          const t = Math.min(1, scrollY / innerHeight);
+          scene.style.setProperty('--t', t.toFixed(4));
+        });
+      };
+      addEventListener('scroll', onScroll, { passive: true });
+      onScroll();
+    }
+  }
+</script>
+
+<style>
+  .scene {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    overflow: hidden;
+    --t: 0;
+  }
+
+  /* The shaft. A wide, very soft wedge of the lead colour raking across the
+     frame — light through a gap, not a spotlight. */
+  .scene__shaft {
+    position: absolute;
+    inset: -30% -10%;
+    background:
+      linear-gradient(
+        104deg,
+        transparent 18%,
+        color-mix(in oklab, var(--accent) 12%, transparent) 38%,
+        color-mix(in oklab, var(--accent) 4%, transparent) 52%,
+        transparent 66%
+      ),
+      radial-gradient(
+        70% 50% at 22% 8%,
+        color-mix(in oklab, var(--accent) 16%, transparent) 0%,
+        transparent 70%
+      );
+    filter: blur(18px);
+    transform: translate3d(0, calc(var(--t) * -6%), 0) scale(1.04);
+    animation: scene-breathe 22s var(--ease-io) infinite alternate;
+  }
+
+  /* The floor. Without it the composition has no bottom and the type appears
+     to be floating in a void rather than standing in a room. */
+  .scene__floor {
+    position: absolute;
+    inset-inline: -10%;
+    bottom: -20%;
+    height: 62%;
+    background: radial-gradient(
+      60% 100% at 50% 100%,
+      color-mix(in oklab, var(--accent) 9%, transparent) 0%,
+      transparent 72%
+    );
+    filter: blur(24px);
+    transform: translate3d(0, calc(var(--t) * 8%), 0);
+  }
+
+  .scene__vignette {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(120% 90% at 50% 40%, transparent 40%, var(--ground) 100%);
+  }
+
+  .scene__film {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0;
+    transition: opacity 900ms var(--ease-out);
+    /* Luminosity, so the film takes the page's colour rather than bringing its
+       own. Whatever gets generated, it will belong to this palette. */
+    mix-blend-mode: luminosity;
+  }
+  .scene[data-film] .scene__film {
+    opacity: 0.55;
+  }
+
+  @keyframes scene-breathe {
+    from {
+      opacity: 0.75;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .scene__shaft {
+      animation: none;
+    }
+  }
+</style>

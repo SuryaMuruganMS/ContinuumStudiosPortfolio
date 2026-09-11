@@ -18,6 +18,16 @@ import svelte from '@astrojs/svelte';
 export default defineConfig({
   site: 'https://continuumstudios.co',
   output: 'static',
+
+  /*
+     /work was the index; /projects is. The case studies stay where they are —
+     `/work/<slug>` is linked from the IstanMetro repo's own documentation and
+     from the index page, and breaking a URL to tidy a route name is a bad
+     trade. Only the listing moved.
+  */
+  redirects: {
+    '/work': '/projects',
+  },
   integrations: [svelte()],
   prefetch: {
     // Prefetch on hover only. Viewport prefetching would pull every project

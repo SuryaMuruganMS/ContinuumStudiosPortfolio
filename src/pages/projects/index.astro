@@ -1,0 +1,278 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import Dust from '../../components/projects/Dust.astro';
+import '../../styles/projects.css';
+
+/**
+ * Projects.
+ *
+ * THE FILTER IS THE ARGUMENT, NOT A CONVENIENCE.
+ * Most studio indexes filter by category, which answers "show me the branding
+ * ones" — a question only another studio asks. This one filters by discipline
+ * AND by the layers a project exposes, because "show me the ones with a motion
+ * layer" is a question a client genuinely has and no other portfolio can
+ * answer. The second row of pills is the whole reason this site exists.
+ *
+ * EVERY CARD IS IN THE HTML.
+ * The reference site draws its grid into a WebGL canvas, which buys a
+ * beautiful dissolve and costs it the entire document: no headings, no links,
+ * nothing for a crawler or a screen reader. Here the grid is real markup that
+ * works with scripting off, and the filter is a hundred lines of vanilla that
+ * toggles an attribute. The motion is CSS reacting to that attribute. Nothing
+ * is drawn twice and nothing is invisible to a machine.
+ */
+const work = (await getCollection('work')).sort((a, b) => a.data.order - b.data.order);
+
+const disciplines = [...new Set(work.flatMap((w) => w.data.disciplines))].sort();
+const strataUsed = [...new Set(work.flatMap((w) => w.data.strata.map((s) => s.id)))].sort();
+
+/**
+ * Two frames per project: the one at rest and the one on hover.
+ *
+ * A single still is a poster. Two stills cross-fading is the cheapest honest
+ * substitute for the autoplaying video every studio site uses — it shows the
+ * project doing something rather than sitting there, at about 60 KB instead of
+ * two megabytes, and it degrades to the first frame if the second is missing.
+ *
+ * A presentation choice rather than content, so it stays out of the entry
+ * frontmatter.
+ */
+const FRAMES: Record<string, [string, string?]> = {
+  istanmetro: ['/work/istanmetro/01-hero-night.webp', '/work/istanmetro/04-map-world.webp'],
+  'kestrel-offshore': [
+    '/work/kestrel/00-hero-descent.webp',
+    '/work/kestrel/06-live-seabed.webp',
+  ],
+  'axiom-dsf': ['/work/axiom/06-live-console.webp', '/work/axiom/05-motion-runs.webp'],
+  // roshan-portfolio deliberately has none: it is in progress, and a cover
+  // would make an unfinished project look finished.
+};
+
+const count = (pred: (w: (typeof work)[number]) => boolean) => work.filter(pred).length;
+---
+
+<Base
+  title="Projects — Continuum Studios"
+  description="Four projects, taken apart. Filter by discipline, or by the layers a project exposes."
+>
+  <div class="room room--projects">
+    <Dust density={70} />
+
+    <section class="pj">
+      <header class="pj__head">
+        <p class="pj__eyebrow mono">
+          Selected work <span class="pj__n">{String(work.length).padStart(2, '0')}</span>
+        </p>
+
+        {
+          /* The one typographic device borrowed wholesale: an italic serif line
+            answered by a sans one. It is borrowed because it is a hundred years
+            older than the site it was seen on. */
+        }
+        <h1 class="pj__title">
+          <span class="pj__title-a">Four projects,</span>
+          <span class="pj__title-b">taken apart.</span>
+        </h1>
+
+        <p class="pj__lede">
+          Every one comes apart into the layers that reveal its hardest problem. Filter by what
+          we did, or by the layer you want to see.
+        </p>
+      </header>
+
+      <div class="pj__filters" data-filters>
+        <div class="fbar" role="group" aria-label="Filter by discipline">
+          <span class="fbar__k mono">Discipline</span>
+          <button class="pill is-on" type="button" data-f="all" aria-pressed="true">
+            All <sup class="mono">{work.length}</sup>
+          </button>
+          {
+            disciplines.map((d) => (
+              <button
+                class="pill"
+                type="button"
+                data-f="discipline"
+                data-v={d}
+                aria-pressed="false"
+              >
+                {d} <sup class="mono">{count((w) => w.data.disciplines.includes(d))}</sup>
+              </button>
+            ))
+          }
+        </div>
+
+        <div class="fbar" role="group" aria-label="Filter by exposed layer">
+          <span class="fbar__k mono">Exposes a layer</span>
+          {
+            strataUsed.map((s) => (
+              <button
+                class="pill pill--s"
+                type="button"
+                data-f="stratum"
+                data-v={s}
+                aria-pressed="false"
+                style={`--s: var(--s-${s})`}
+              >
+                <i class="pill__dot" aria-hidden="true" />
+                {s}{' '}
+                <sup class="mono">{count((w) => w.data.strata.some((x) => x.id === s))}</sup>
+              </button>
+            ))
+          }
+        </div>
+      </div>
+
+      <p class="pj__tally mono" data-tally aria-live="polite">
+        Showing {work.length} of {work.length}
+      </p>
+
+      <ol class="pgrid" data-grid>
+        {
+          work.map((w, i) => {
+            const [rest, hover] = FRAMES[w.id] ?? [];
+            return (
+              <li
+                class="pgrid__cell"
+                style={`--i:${i}`}
+                data-disciplines={w.data.disciplines.join('|')}
+                data-strata={w.data.strata.map((s) => s.id).join('|')}
+              >
+                <article class="pcard">
+                  <a class="pcard__hit" href={`/work/${w.id}`} data-cursor="View">
+                    <span class="pcard__frame">
+                      {rest ? (
+                        <>
+                          <img
+                            class="pcard__img pcard__img--rest"
+                            src={rest}
+                            alt=""
+                            loading={i < 2 ? 'eager' : 'lazy'}
+                            decoding="async"
+                          />
+                          {hover && (
+                            <img
+                              class="pcard__img pcard__img--hover"
+                              src={hover}
+                              alt=""
+                              loading="lazy"
+                              decoding="async"
+                            />
+                          )}
+                        </>
+                      ) : (
+                        <span class="pcard__none mono">In progress</span>
+                      )}
+                      <span class="pcard__idx mono" aria-hidden="true">
+                        {String(i + 1).padStart(2, '0')}
+                      </span>
+                      <span class="pcard__sweep" aria-hidden="true" />
+                    </span>
+
+                    <span class="pcard__meta">
+                      <span class="pcard__title">{w.data.title}</span>
+                      <span class="pcard__line mono">
+                        {w.data.disciplines.slice(0, 2).join(' · ')} — {w.data.year}
+                      </span>
+                    </span>
+                  </a>
+
+                  <ul class="pcard__strata" aria-label="Layers exposed">
+                    {w.data.strata.map((s) => (
+                      <li style={`--s: var(--s-${s.id})`}>{s.id}</li>
+                    ))}
+                  </ul>
+                </article>
+              </li>
+            );
+          })
+        }
+      </ol>
+
+      <p class="pj__empty" data-empty hidden>
+        Nothing exposes that layer yet. <button type="button" data-reset>Show all four</button>
+      </p>
+    </section>
+  </div>
+</Base>
+
+<script>
+  const grid = document.querySelector<HTMLElement>('[data-grid]');
+  const bar = document.querySelector<HTMLElement>('[data-filters]');
+  const tally = document.querySelector<HTMLElement>('[data-tally]');
+  const empty = document.querySelector<HTMLElement>('[data-empty]');
+
+  if (grid && bar) {
+    const cells = [...grid.querySelectorAll<HTMLElement>('.pgrid__cell')];
+    const pills = [...bar.querySelectorAll<HTMLButtonElement>('.pill')];
+    const total = cells.length;
+
+    /**
+     * One filter at a time, and "all" is a filter.
+     *
+     * Multi-select was the first build and it was wrong: with four projects,
+     * any two conditions land on zero results, so the interface spent most of
+     * its life showing an empty state. One at a time always shows something,
+     * and the counts on the pills already say what each one will give you
+     * before you press it.
+     */
+    let kind: 'all' | 'discipline' | 'stratum' = 'all';
+    let value = '';
+
+    const apply = () => {
+      let shown = 0;
+      for (const cell of cells) {
+        const list =
+          kind === 'discipline'
+            ? (cell.dataset.disciplines ?? '')
+            : kind === 'stratum'
+              ? (cell.dataset.strata ?? '')
+              : '';
+        const on = kind === 'all' || list.split('|').includes(value);
+        if (on) shown++;
+        // `data-out` drives the CSS; `hidden` comes after the transition so
+        // the card is not pulled out of the layout mid-animation.
+        cell.toggleAttribute('data-out', !on);
+      }
+
+      // The stagger is re-indexed over what is actually visible, so a filter
+      // that leaves cards 1 and 4 animates them as first and second rather
+      // than first and fourth — otherwise the second one arrives a long beat
+      // late for no reason a reader can see.
+      let n = 0;
+      for (const cell of cells) {
+        if (!cell.hasAttribute('data-out')) cell.style.setProperty('--i', String(n++));
+      }
+
+      if (tally) tally.textContent = `Showing ${shown} of ${total}`;
+      if (empty) empty.hidden = shown > 0;
+      grid.toggleAttribute('data-thin', shown === 1);
+    };
+
+    const paint = (active: HTMLButtonElement | null) => {
+      for (const p of pills) {
+        const on = p === active;
+        p.classList.toggle('is-on', on);
+        p.setAttribute('aria-pressed', String(on));
+      }
+    };
+
+    bar.addEventListener('click', (e) => {
+      const pill = (e.target as HTMLElement).closest<HTMLButtonElement>('.pill');
+      if (!pill) return;
+      const f = pill.dataset.f as typeof kind | undefined;
+      if (!f) return;
+      kind = f;
+      value = pill.dataset.v ?? '';
+      paint(pill);
+      apply();
+    });
+
+    document.querySelector('[data-reset]')?.addEventListener('click', () => {
+      kind = 'all';
+      value = '';
+      paint(pills[0] ?? null);
+      apply();
+    });
+  }
+</script>

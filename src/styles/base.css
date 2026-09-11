@@ -331,6 +331,75 @@ a:hover {
   }
 }
 
+/* ------------------------------------------------------------------- pill
+   The site's second control, and a shared one.
+
+   It lived in projects.css until the contact page grew a pair of them and its
+   chosen tab came out unfilled — the rule was simply not on the page. A
+   primitive used by two rooms belongs with the other primitives, and it takes
+   its colour from `--accent`, so it is whatever the room it is standing in
+   is.
+   ------------------------------------------------------------------------ */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border: 1px solid var(--rule-live);
+  border-radius: var(--r-pill);
+  background: transparent;
+  color: var(--ink-2);
+  font: inherit;
+  font-size: var(--t-small);
+  line-height: 1;
+  text-transform: capitalize;
+  cursor: pointer;
+  transition:
+    color var(--d-hover) var(--ease-out),
+    border-color var(--d-hover) var(--ease-out),
+    background-color var(--d-hover) var(--ease-out),
+    box-shadow var(--d-hover) var(--ease-out);
+}
+.pill sup {
+  font-size: 9px;
+  color: var(--ink-4);
+  transform: translateY(-0.35em);
+  transition: color var(--d-hover) var(--ease-out);
+}
+.pill:hover {
+  color: var(--ink);
+  border-color: var(--accent);
+}
+.pill.is-on {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--ink-on-accent);
+  /* The lit pill is the only thing on the page allowed to actually glow. */
+  box-shadow: 0 0 24px -6px var(--accent);
+}
+.pill.is-on sup {
+  color: color-mix(in oklab, var(--ink-on-accent) 70%, transparent);
+}
+
+/* A stratum pill carries its layer's own hue as a dot, never as its fill —
+   twelve filled hues in a row would be a paint chart. */
+.pill__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: var(--r-pill);
+  background: var(--s, var(--ink-3));
+  flex: none;
+}
+.pill--s.is-on {
+  background: transparent;
+  border-color: var(--s);
+  color: var(--ink);
+  box-shadow: 0 0 22px -8px var(--s);
+}
+.pill--s.is-on sup {
+  color: var(--ink-3);
+}
+
 .btn--ghost {
   border-color: transparent;
   color: var(--ink-3);

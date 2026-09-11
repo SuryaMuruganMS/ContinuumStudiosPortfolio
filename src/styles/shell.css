@@ -1,0 +1,482 @@
+/* ===========================================================================
+   CONTINUUM — THE SHELL
+   ---------------------------------------------------------------------------
+   The parts that are on every page and belong to none of them: the header, the
+   menu overlay, the cursor, the sound toggle, and the grain that sits over all
+   of it.
+
+   Everything here is fixed, so everything here is on the compositor. No rule
+   in this file animates a property that triggers layout — `transform`,
+   `opacity` and `clip-path` only. A header that reflowed on scroll would make
+   the whole page judder, and on black that reads as a broken screen rather
+   than a slow one.
+   =========================================================================== */
+
+/* ------------------------------------------------------------------ header */
+.site-head {
+  position: absolute;
+  inset-inline: 0;
+  top: 0;
+  z-index: var(--z-header);
+  pointer-events: none;
+}
+.site-head.is-sticky {
+  position: fixed;
+}
+.site-head__inner {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-roomy);
+  padding: var(--sp-roomy) var(--margin);
+}
+.site-head__inner > * {
+  pointer-events: auto;
+}
+
+.mark {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  text-decoration: none;
+  color: var(--ink);
+  margin-inline-end: auto;
+}
+.mark__img {
+  width: 26px;
+  height: 26px;
+  object-fit: contain;
+}
+.mark__glyph {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 16px;
+}
+.mark__glyph i {
+  width: 3px;
+  height: var(--h);
+  background: var(--c);
+  display: block;
+}
+.mark__word {
+  font-family: var(--f-body);
+  font-size: 1.02rem;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
+.mark__reg {
+  font-size: 0.6rem;
+  color: var(--ink-3);
+  transform: translateY(-6px);
+}
+
+.site-nav {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-roomy);
+}
+.site-nav__link {
+  position: relative;
+  text-decoration: none;
+  color: var(--ink-2);
+  font-size: var(--t-small);
+  font-weight: 450;
+  transition: color var(--d-hover) var(--ease-out);
+}
+.site-nav__link.is-current {
+  color: var(--ink);
+}
+/*
+   The roll.
+
+   Two copies of the word in a box one line tall with `overflow: hidden`; the
+   pair slides up by exactly one line on hover, so the old word leaves as the
+   new one arrives. It is the same word, which is the joke — nothing changes
+   except that the link demonstrably heard you.
+*/
+.site-nav__roll {
+  display: block;
+  overflow: hidden;
+  height: 1.35em;
+}
+.site-nav__roll > span {
+  display: block;
+  height: 1.35em;
+  line-height: 1.35em;
+  transition: transform var(--d-ui) var(--ease-glide);
+}
+.site-nav__link:hover .site-nav__roll > span,
+.site-nav__link:focus-visible .site-nav__roll > span {
+  transform: translateY(-1.35em);
+}
+.site-nav__link:hover,
+.site-nav__link:focus-visible {
+  color: var(--accent);
+}
+
+.site-tools {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-snug);
+}
+
+/* --------------------------------------------------------------- the burger
+   Two bars that become a cross. Not three: the third bar is a convention from
+   a time when the control needed explaining, and two reads as a control just
+   as clearly while making a better cross. */
+.burger {
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-content: center;
+  gap: 5px;
+  border: 1px solid var(--rule-live);
+  border-radius: var(--r-pill);
+  background: color-mix(in oklab, var(--surface) 60%, transparent);
+  backdrop-filter: blur(8px);
+  cursor: pointer;
+  transition:
+    border-color var(--d-hover) var(--ease-out),
+    background-color var(--d-hover) var(--ease-out);
+}
+.burger span {
+  display: block;
+  width: 15px;
+  height: 1.5px;
+  background: var(--ink);
+  transition: transform var(--d-ui) var(--ease-glide);
+}
+.burger:hover {
+  border-color: var(--accent);
+}
+.menu-open .burger span:first-child {
+  transform: translateY(3.25px) rotate(45deg);
+}
+.menu-open .burger span:last-child {
+  transform: translateY(-3.25px) rotate(-45deg);
+}
+
+/* ---------------------------------------------------------- the sound toggle
+   Four bars that stand still until sound is on, then move — an equaliser that
+   is honest about being off. */
+.snd {
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-content: center;
+  border: 1px solid var(--rule-live);
+  border-radius: var(--r-pill);
+  background: color-mix(in oklab, var(--surface) 60%, transparent);
+  backdrop-filter: blur(8px);
+  cursor: pointer;
+  transition: border-color var(--d-hover) var(--ease-out);
+}
+.snd:hover {
+  border-color: var(--accent);
+}
+.snd__bars {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  height: 13px;
+}
+.snd__bars i {
+  display: block;
+  width: 1.5px;
+  height: 3px;
+  background: var(--ink-3);
+  transition:
+    height var(--d-ui) var(--ease-out),
+    background-color var(--d-ui) var(--ease-out);
+}
+.snd-on .snd__bars i {
+  background: var(--accent);
+  animation: snd-eq 900ms var(--ease-io) infinite alternate;
+}
+.snd-on .snd__bars i:nth-child(2) {
+  animation-delay: 140ms;
+}
+.snd-on .snd__bars i:nth-child(3) {
+  animation-delay: 280ms;
+}
+.snd-on .snd__bars i:nth-child(4) {
+  animation-delay: 90ms;
+}
+@keyframes snd-eq {
+  from {
+    height: 3px;
+  }
+  to {
+    height: 12px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .snd-on .snd__bars i {
+    animation: none;
+    height: 9px;
+  }
+}
+
+/* ==================================================================== menu */
+.menu {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-sheet);
+}
+.menu__scrim {
+  position: absolute;
+  inset: 0;
+  background: color-mix(in oklab, var(--ground) 72%, transparent);
+  backdrop-filter: blur(10px);
+  opacity: 0;
+  transition: opacity var(--d-page) var(--ease-out);
+}
+.menu[data-on] .menu__scrim {
+  opacity: 1;
+}
+
+.menu__panel {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-end: 0;
+  width: min(100%, 30rem);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-loose);
+  padding: calc(var(--sp-loose) + 38px) var(--margin) var(--sp-loose);
+  background: var(--ground-2);
+  border-inline-start: 1px solid var(--rule);
+  overflow-y: auto;
+  transform: translateX(100%);
+  transition: transform var(--d-page) var(--ease-glide);
+}
+.menu[data-on] .menu__panel {
+  transform: translateX(0);
+}
+
+.menu__x {
+  position: absolute;
+  top: var(--sp-roomy);
+  inset-inline-end: var(--margin);
+  width: 38px;
+  height: 38px;
+  border: 1px solid var(--rule-live);
+  border-radius: var(--r-pill);
+  background: none;
+  color: var(--ink-2);
+  font-size: 13px;
+  cursor: pointer;
+  transition:
+    color var(--d-hover) var(--ease-out),
+    border-color var(--d-hover) var(--ease-out);
+}
+.menu__x:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.menu__doors ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  margin-block: auto;
+}
+/*
+   Each door arrives a beat after the one above it.
+
+   The stagger is `--i` multiplied by 48ms and it is the only choreography in
+   the shell. It exists because four links appearing together is a panel, and
+   four links appearing in order is a list being read out.
+*/
+.menu__door {
+  opacity: 0;
+  transform: translateY(14px);
+  transition:
+    opacity var(--d-ui) var(--ease-out),
+    transform var(--d-page) var(--ease-glide);
+  transition-delay: calc(var(--i) * 48ms + 60ms);
+}
+.menu[data-on] .menu__door {
+  opacity: 1;
+  transform: none;
+}
+.menu__link {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-snug);
+  padding-block: 6px;
+  text-decoration: none;
+  color: var(--ink);
+}
+.menu__num {
+  font-size: var(--t-label);
+  color: var(--ink-4);
+  letter-spacing: 0.1em;
+  transition: color var(--d-hover) var(--ease-out);
+}
+.menu__word {
+  font-family: var(--f-display);
+  font-style: italic;
+  font-size: clamp(2.4rem, 7vw, 3.6rem);
+  font-weight: 400;
+  line-height: 1.04;
+  letter-spacing: -0.02em;
+  transition: transform var(--d-ui) var(--ease-glide);
+}
+.menu__link:hover .menu__word,
+.menu__link:focus-visible .menu__word {
+  transform: translateX(10px);
+  color: var(--accent);
+}
+.menu__link:hover .menu__num,
+.menu__link:focus-visible .menu__num {
+  color: var(--accent);
+}
+.menu__link.is-current .menu__word {
+  color: var(--ink-3);
+}
+
+.menu__foot {
+  display: grid;
+  gap: var(--sp-roomy);
+  padding-top: var(--sp-roomy);
+  border-top: 1px solid var(--rule);
+}
+.menu__col {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-tight);
+}
+.menu__else {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-tight) var(--sp-base);
+  font-size: var(--t-small);
+}
+.menu__mail {
+  color: var(--ink);
+  text-decoration: none;
+  border-bottom: 1px solid var(--rule-live);
+  padding-bottom: 2px;
+  width: fit-content;
+  transition:
+    color var(--d-hover) var(--ease-out),
+    border-color var(--d-hover) var(--ease-out);
+}
+.menu__mail:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+.menu__where {
+  font-size: var(--t-label);
+  letter-spacing: 0.08em;
+  color: var(--ink-4);
+}
+
+/* ================================================================== cursor */
+.has-cursor,
+.has-cursor a,
+.has-cursor button,
+.has-cursor [role='button'],
+.has-cursor summary {
+  cursor: none;
+}
+.cur {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-cursor);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity var(--d-ui) var(--ease-out);
+}
+.cur[data-on] {
+  opacity: 1;
+}
+.cur__dot,
+.cur__ring {
+  position: absolute;
+  top: 0;
+  left: 0;
+  border-radius: var(--r-pill);
+  will-change: transform;
+}
+.cur__dot {
+  width: 5px;
+  height: 5px;
+  background: var(--accent);
+}
+.cur__ring {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: 1px solid color-mix(in oklab, var(--accent) 60%, transparent);
+  transition:
+    width var(--d-ui) var(--ease-glide),
+    height var(--d-ui) var(--ease-glide),
+    background-color var(--d-ui) var(--ease-out),
+    border-color var(--d-ui) var(--ease-out);
+}
+.cur[data-state='hot'] .cur__ring {
+  width: 46px;
+  height: 46px;
+  background: color-mix(in oklab, var(--accent) 12%, transparent);
+}
+.cur[data-state='word'] .cur__ring {
+  width: 76px;
+  height: 76px;
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.cur[data-state='word'] .cur__dot {
+  opacity: 0;
+}
+.cur__label {
+  font-family: var(--f-mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-on-accent);
+  opacity: 0;
+  transition: opacity var(--d-hover) var(--ease-out);
+}
+.cur[data-state='word'] .cur__label {
+  opacity: 1;
+}
+.cur[data-press] .cur__ring {
+  transform-origin: center;
+  scale: 0.86;
+}
+
+/* =================================================================== grain
+   A still film grain over the whole page, at four per cent.
+
+   Large flat fields of near-black band on eight-bit displays — you get visible
+   steps wherever a glow fades out. A little noise dithers the gradient and the
+   banding goes. It is also, not incidentally, the cheapest way to stop a
+   black page looking like a switched-off screen.
+
+   Generated rather than fetched: one inline SVG turbulence, about 300 bytes,
+   against 40 KB for the PNG everybody else ships. */
+.grain {
+  position: fixed;
+  inset: -50%;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.04;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ---------------------------------------------------------------- narrow */
+@media (max-width: 720px) {
+  .site-nav {
+    display: none;
+  }
+  .menu__panel {
+    width: 100%;
+  }
+}

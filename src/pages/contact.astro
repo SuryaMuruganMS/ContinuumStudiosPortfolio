@@ -1,0 +1,190 @@
+---
+import Base from '../layouts/Base.astro';
+import Scene from '../components/contact/Scene.astro';
+import Dust from '../components/projects/Dust.astro';
+import { SITE, FOUNDERS } from '../lib/site';
+import '../styles/contact.css';
+
+/**
+ * Contact.
+ *
+ * ONE SCREEN, TWO ROUTES, ONE ADDRESS.
+ *
+ * The reference site's contact page is a rendered room, four words, two pills
+ * and an email — and it is right, because a contact page has exactly one job
+ * and every field you add to it is a reason not to write. This is the same
+ * shape with one difference that matters: the two routes here go to different
+ * places rather than swapping the address in the same sentence.
+ *
+ * New work goes to the Commission Desk, because a brief answered in six steps
+ * is worth more to both sides than a blank email — and the Desk already
+ * exists, already validates, and already posts to a Worker. Everything else
+ * goes to the inbox.
+ *
+ * TWO PEOPLE, NOT TWO OFFICES.
+ * The reference lists a Bristol address and a London one. This studio is two
+ * people in Salem and pretending otherwise on the page where somebody decides
+ * whether to trust us would be the exact opposite of what the rest of the site
+ * argues. So the second column is who you will actually be talking to.
+ */
+const ROUTES = [
+  {
+    id: 'work',
+    label: 'New work',
+    line: 'A project, a rebuild, or a second opinion on one.',
+    href: '/commission',
+    cta: 'Open the Commission Desk',
+    note: 'Six questions. Five minutes. You get a written response either way.',
+  },
+  {
+    id: 'else',
+    label: 'Anything else',
+    line: 'Press, collaboration, a question about how something here works.',
+    href: `mailto:${SITE.email}`,
+    cta: SITE.email,
+    note: 'Straight to both of us. We answer within two working days.',
+  },
+];
+---
+
+<Base
+  title="Contact — Continuum Studios"
+  description="Tell us the hard part. New work goes to the Commission Desk; everything else goes straight to the inbox."
+  stickyHeader={true}
+>
+  <div class="room room--contact">
+    <Scene />
+    <Dust density={38} />
+
+    <section class="ct">
+      <div class="ct__plate">
+        <p class="ct__eyebrow mono">Contact — {SITE.short}</p>
+
+        <h1 class="ct__title">
+          <span class="ct__title-a">Tell us the</span>
+          <span class="ct__title-b">hard part.</span>
+        </h1>
+
+        <p class="ct__lede">
+          Not the brief — the part of it you are not sure can be built. That is the conversation
+          worth having first, and it is the one this studio is for.
+        </p>
+
+        {
+          /* Two routes, and the chosen one is the only one expanded. A page
+            that shows both bodies at once is a page asking the reader to
+            compare rather than to choose. */
+        }
+        <div class="ct__routes" data-routes>
+          <div class="ct__tabs" role="tablist" aria-label="What are you writing about?">
+            {
+              ROUTES.map((r, i) => (
+                <button
+                  class:list={['pill', 'ct__tab', { 'is-on': i === 0 }]}
+                  type="button"
+                  role="tab"
+                  id={`tab-${r.id}`}
+                  aria-controls={`panel-${r.id}`}
+                  aria-selected={i === 0 ? 'true' : 'false'}
+                  data-route={r.id}
+                >
+                  {r.label}
+                  <span class="ct__arrow" aria-hidden="true">
+                    →
+                  </span>
+                </button>
+              ))
+            }
+          </div>
+
+          {
+            ROUTES.map((r, i) => (
+              <div
+                class="ct__panel"
+                role="tabpanel"
+                id={`panel-${r.id}`}
+                aria-labelledby={`tab-${r.id}`}
+                data-panel={r.id}
+                hidden={i !== 0}
+              >
+                <p class="ct__line">{r.line}</p>
+                <a
+                  class="ct__cta"
+                  href={r.href}
+                  data-cursor={r.id === 'else' ? 'Write' : 'Open'}
+                >
+                  <span>{r.cta}</span>
+                  <span class="ct__cta-rule" aria-hidden="true" />
+                </a>
+                <p class="ct__note mono">{r.note}</p>
+              </div>
+            ))
+          }
+        </div>
+      </div>
+
+      <footer class="ct__who">
+        <p class="label">Who you will be talking to</p>
+        <ul class="ct__people">
+          {
+            FOUNDERS.map((f) => (
+              <li>
+                <span class="ct__name">{f.name}</span>
+                <span class="ct__role mono">{f.role}</span>
+                <span class="ct__owns">{f.owns}</span>
+              </li>
+            ))
+          }
+        </ul>
+        <p class="ct__where mono">Salem, Tamil Nadu · working with anyone, anywhere</p>
+      </footer>
+    </section>
+  </div>
+</Base>
+
+<script>
+  const routes = document.querySelector<HTMLElement>('[data-routes]');
+
+  if (routes) {
+    const tabs = [...routes.querySelectorAll<HTMLButtonElement>('[data-route]')];
+    const panels = [...routes.querySelectorAll<HTMLElement>('[data-panel]')];
+
+    const show = (id: string) => {
+      for (const t of tabs) {
+        const on = t.dataset.route === id;
+        t.classList.toggle('is-on', on);
+        t.setAttribute('aria-selected', String(on));
+      }
+      for (const p of panels) {
+        const on = p.dataset.panel === id;
+        p.hidden = !on;
+        // Re-triggered per switch so the body animates in each time rather
+        // than only on first paint.
+        if (on) {
+          p.classList.remove('is-in');
+          void p.offsetWidth;
+          p.classList.add('is-in');
+        }
+      }
+    };
+
+    routes.addEventListener('click', (e) => {
+      const tab = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-route]');
+      if (tab?.dataset.route) show(tab.dataset.route);
+    });
+
+    /* Arrow keys move between tabs, which is what a tablist promises the
+       moment it calls itself one. */
+    routes.addEventListener('keydown', (e) => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const i = tabs.findIndex((t) => t === document.activeElement);
+      if (i < 0) return;
+      e.preventDefault();
+      const next = tabs[(i + (e.key === 'ArrowRight' ? 1 : tabs.length - 1)) % tabs.length]!;
+      next.focus();
+      if (next.dataset.route) show(next.dataset.route);
+    });
+
+    panels[0]?.classList.add('is-in');
+  }
+</script>

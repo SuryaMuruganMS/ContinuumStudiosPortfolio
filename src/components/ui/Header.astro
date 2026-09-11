@@ -1,71 +1,63 @@
 ---
 /**
- * Four destinations and nothing else. No mega-menu, no dropdowns — four
- * items do not require disclosure (Specification, Phase 5).
+ * Three doors in the bar, the rest behind the menu.
  *
- * Static on the index so the hero thesis does not compete with chrome;
- * sticky from the second viewport onward, which the `sticky` prop controls.
+ * It used to carry Work, Studio, Notes and a Commission button, plus a theme
+ * toggle — six controls, which is what a header looks like when nobody has
+ * decided what a visitor is here for. They are here for the work, and then to
+ * get in touch. Everything else is real and worth keeping and belongs one
+ * press away rather than in the one strip of the page that is always on
+ * screen.
+ *
+ * The theme toggle is gone because the theme is gone: one palette, stated once
+ * in tokens.css.
  */
+import { SITE } from '../../lib/site';
+import Sound from '../shell/Sound.astro';
+import { existsSync } from 'node:fs';
+
 interface Props {
   sticky?: boolean;
 }
-import { SITE } from '../../lib/site';
-import ThemeToggle from './ThemeToggle.astro';
-import { existsSync } from 'node:fs';
-
 const { sticky = true } = Astro.props;
 
 /**
  * The drawn four-bar glyph is the fallback, not the placeholder-to-be-deleted:
- * if no brand file has been supplied the header still has a real mark. Drop
- * the two files below into `public/brand/` and they take over automatically —
- * no code change, and the site never ships a broken <img>.
+ * if no brand file has been supplied the header still has a real mark.
+ *
+ * One file now rather than a light/dark pair. The dark mark is the mark.
  */
-const MARK_LIGHT = '/brand/continuum-mark-light.webp';
-const MARK_DARK = '/brand/continuum-mark-dark.webp';
-const hasMark = existsSync(`public${MARK_LIGHT}`) && existsSync(`public${MARK_DARK}`);
+const MARK = '/brand/continuum-mark-dark.webp';
+const hasMark = existsSync(`public${MARK}`);
 const path = Astro.url.pathname;
 
 const NAV = [
-  { href: '/work', label: 'Work' },
-  { href: '/studio', label: 'Studio' },
-  { href: '/notes', label: 'Notes' },
+  { href: '/', label: 'Index' },
+  { href: '/projects', label: 'Projects' },
+  { href: '/contact', label: 'Contact' },
 ];
 
-const isCurrent = (href: string) => path === href || path.startsWith(href + '/');
+const isCurrent = (href: string) =>
+  href === '/' ? path === '/' : path === href || path.startsWith(href + '/');
 ---
 
 <header class:list={['site-head', { 'is-sticky': sticky }]}>
-  <div class="site-head__inner shell">
+  <div class="site-head__inner">
     <a class="mark" href="/" aria-label={`${SITE.name} — home`}>
       {
         hasMark ? (
-          <span class="mark__art" aria-hidden="true">
-            <img
-              class="mark__img mark__img--light"
-              src={MARK_LIGHT}
-              alt=""
-              width="28"
-              height="28"
-            />
-            <img
-              class="mark__img mark__img--dark"
-              src={MARK_DARK}
-              alt=""
-              width="28"
-              height="28"
-            />
-          </span>
+          <img class="mark__img" src={MARK} alt="" width="26" height="26" />
         ) : (
           <span class="mark__glyph" aria-hidden="true">
-            <i style="--h: 4px; --c: var(--s-structure)" />
-            <i style="--h: 7px; --c: var(--s-grid)" />
-            <i style="--h: 11px; --c: var(--s-colour)" />
-            <i style="--h: 16px; --c: var(--s-live)" />
+            <i style="--h: 4px; --c: var(--neon-cyan)" />
+            <i style="--h: 7px; --c: var(--neon-green)" />
+            <i style="--h: 11px; --c: var(--neon-orange)" />
+            <i style="--h: 16px; --c: var(--ink)" />
           </span>
         )
       }
       <span class="mark__word">{SITE.short}</span>
+      <span class="mark__reg" aria-hidden="true">®</span>
     </a>
 
     <nav class="site-nav" aria-label="Primary">
@@ -76,163 +68,30 @@ const isCurrent = (href: string) => path === href || path.startsWith(href + '/')
             class:list={['site-nav__link', { 'is-current': isCurrent(item.href) }]}
             aria-current={isCurrent(item.href) ? 'page' : undefined}
           >
-            {item.label}
+            {/* Two copies, one clipped above the other: the hover swaps them
+                rather than fading, which is the difference between a link that
+                responds and a link that dims. */}
+            <span class="site-nav__roll">
+              <span>{item.label}</span>
+              <span aria-hidden="true">{item.label}</span>
+            </span>
           </a>
         ))
       }
     </nav>
 
     <div class="site-tools">
-      <ThemeToggle />
-      <a href="/commission" class="btn btn--primary site-nav__cta">Commission</a>
+      <Sound />
+      <button
+        class="burger"
+        type="button"
+        data-menu-open
+        aria-expanded="false"
+        aria-label="Menu"
+      >
+        <span aria-hidden="true"></span>
+        <span aria-hidden="true"></span>
+      </button>
     </div>
   </div>
 </header>
-
-<style>
-  /* Two files rather than one recoloured file: the supplied marks are raster
-     artwork with their own grounds, so each theme gets the one drawn for it.
-     Only one is ever in the layout. */
-  .mark__art {
-    display: grid;
-    flex: none;
-  }
-  .mark__img {
-    grid-area: 1 / 1;
-    width: 28px;
-    height: 28px;
-    object-fit: contain;
-  }
-  .mark__img--dark {
-    display: none;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root:not([data-theme='light']) .mark__img--light {
-      display: none;
-    }
-    :root:not([data-theme='light']) .mark__img--dark {
-      display: block;
-    }
-  }
-  :root[data-theme='dark'] .mark__img--light {
-    display: none;
-  }
-  :root[data-theme='dark'] .mark__img--dark {
-    display: block;
-  }
-
-  .site-head {
-    border-bottom: var(--border-hair);
-    background: color-mix(in oklab, var(--ground) 88%, transparent);
-    backdrop-filter: blur(10px);
-    z-index: var(--z-header);
-  }
-  .site-head.is-sticky {
-    position: sticky;
-    top: 0;
-  }
-  .site-head__inner {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--sp-base);
-    min-height: 64px;
-  }
-
-  /* A constructed mark: four bars of unequal weight, the stratum idea in
-     miniature. Not a letter in a box. */
-  .mark {
-    display: flex;
-    align-items: center;
-    gap: var(--sp-snug);
-    color: var(--ink);
-    text-decoration: none;
-  }
-  .mark__glyph {
-    display: flex;
-    align-items: flex-end;
-    gap: 2px;
-    height: 16px;
-  }
-  .mark__glyph i {
-    display: block;
-    width: 3px;
-    height: var(--h);
-    background: var(--c);
-  }
-  .mark__word {
-    font-family: var(--f-display);
-    font-weight: 800;
-    font-size: 15px;
-    letter-spacing: 0.06em;
-  }
-
-  .site-nav {
-    display: flex;
-    align-items: center;
-    gap: var(--sp-roomy);
-  }
-
-  .site-tools {
-    display: flex;
-    align-items: center;
-    gap: var(--sp-snug);
-  }
-
-  /* Below this width the mark, three links, the theme control and the call to
-     action cannot share a row: they measured 430px inside a 335px column. The
-     controls stay on the top row with the mark — they are the two things a
-     visitor reaches for — and the links take a full-width row underneath. */
-  @media (max-width: 640px) {
-    .site-head__inner {
-      flex-wrap: wrap;
-      row-gap: var(--sp-tight);
-      padding-block: var(--sp-tight);
-    }
-    .site-nav {
-      order: 3;
-      width: 100%;
-      justify-content: flex-start;
-      gap: var(--sp-base);
-    }
-    .site-tools {
-      margin-left: auto;
-    }
-  }
-  .site-nav__link {
-    font-family: var(--f-mono);
-    font-size: 11.5px;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--ink-3);
-    text-decoration: none;
-    padding-block: var(--sp-tight);
-    border-bottom: 1px solid transparent;
-    transition:
-      color var(--d-hover) var(--ease-out),
-      border-color var(--d-hover) var(--ease-out);
-  }
-  .site-nav__link:hover {
-    color: var(--ink);
-  }
-  .site-nav__link.is-current {
-    color: var(--ink);
-    border-bottom-color: var(--accent);
-  }
-  .site-nav__cta {
-    min-height: 36px;
-    padding-inline: var(--sp-base);
-  }
-
-  @media (max-width: 640px) {
-    .site-nav {
-      gap: var(--sp-base);
-    }
-    .site-nav__link {
-      font-size: 10.5px;
-    }
-    .mark__word {
-      display: none;
-    }
-  }
-</style>
