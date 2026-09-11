@@ -27,9 +27,9 @@ const FILM = '/film/contact-room.mp4';
 const hasFilm = existsSync(`public${FILM}`);
 ---
 
-<div class="scene" data-scene aria-hidden="true">
-  <div class="scene__shaft"></div>
-  <div class="scene__floor"></div>
+<div class="scene tilt__inner" data-scene aria-hidden="true">
+  <div class="scene__shaft par"></div>
+  <div class="scene__floor par--mid"></div>
   <div class="scene__vignette"></div>
   {
     hasFilm && (
@@ -114,7 +114,11 @@ const hasFilm = existsSync(`public${FILM}`);
         transparent 70%
       );
     filter: blur(18px);
-    transform: translate3d(0, calc(var(--t) * -6%), 0) scale(1.04);
+    /* The scroll lift and the pointer parallax are multiplied together here
+       rather than fighting over the same property: `.par` in shell.css sets
+       the pointer part, and this adds the scroll part on top of it. */
+    transform: translate3d(calc(var(--mx) * -26px), calc(var(--my) * -18px + var(--t) * -6%), 0)
+      scale(1.04);
     animation: scene-breathe 22s var(--ease-io) infinite alternate;
   }
 
@@ -131,7 +135,7 @@ const hasFilm = existsSync(`public${FILM}`);
       transparent 72%
     );
     filter: blur(24px);
-    transform: translate3d(0, calc(var(--t) * 8%), 0);
+    transform: translate3d(calc(var(--mx) * -14px), calc(var(--my) * -10px + var(--t) * 8%), 0);
   }
 
   .scene__vignette {

@@ -1,0 +1,213 @@
+---
+/**
+ * Embers.
+ *
+ * Sparks struck off the pointer: a few per frame while it is moving, none at
+ * all while it is still. They inherit a fraction of the pointer's own velocity,
+ * then buoyancy takes over and they rise, slow, cool from white through the
+ * accent to nothing, and die.
+ *
+ * WHY THEY ARE STRUCK RATHER THAN EMITTED
+ * A steady emitter at the cursor is a torch, and a torch follows you around
+ * the page whether or not you are doing anything. Spawning on movement makes
+ * the page feel like it is being disturbed — the faster the hand, the more
+ * comes off — which is the difference between an effect attached to the cursor
+ * and one caused by it.
+ *
+ * COST
+ * One canvas, one rAF that stops itself the moment the last ember dies, and a
+ * hard cap on the pool. No allocation in the loop: dead embers are re-seeded in
+ * place rather than pushed and spliced, so a long session does not sawtooth the
+ * garbage collector.
+ *
+ * Not built at all on a coarse pointer or under reduced motion. Sparks chasing
+ * a finger are not sparks, and a page that throws fire at somebody who asked
+ * for less motion has misunderstood the request.
+ */
+---
+
+<canvas class="embers" data-embers aria-hidden="true"></canvas>
+
+<script>
+  const cv = document.querySelector<HTMLCanvasElement>('[data-embers]');
+  const fine = matchMedia('(pointer: fine)').matches;
+  const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  if (cv && fine && !still) {
+    const ctx = cv.getContext('2d', { alpha: true });
+    if (ctx) {
+      const MAX = 90;
+      let w = 0;
+      let h = 0;
+      let raf = 0;
+      let live = 0;
+
+      /** Pointer now, and where it was last frame, for the launch velocity. */
+      let px = -999;
+      let py = -999;
+      let lx = px;
+      let ly = py;
+
+      interface Ember {
+        x: number;
+        y: number;
+        vx: number;
+        vy: number;
+        /** 1 at birth, 0 at death. Drives size, alpha and colour. */
+        life: number;
+        decay: number;
+        r: number;
+      }
+      /* A fixed pool. `life <= 0` means free. */
+      const pool: Ember[] = Array.from({ length: MAX }, () => ({
+        x: 0,
+        y: 0,
+        vx: 0,
+        vy: 0,
+        life: 0,
+        decay: 0,
+        r: 0,
+      }));
+
+      /** Read once from CSS so the colour lives with the rest of the design. */
+      let hot = '#ffd2ac';
+      let warm = '#ff6a1f';
+      const readColours = () => {
+        const s = getComputedStyle(cv);
+        hot = s.getPropertyValue('--ember-hot').trim() || hot;
+        warm = s.getPropertyValue('--ember-warm').trim() || warm;
+      };
+
+      const size = () => {
+        const dpr = Math.min(devicePixelRatio || 1, 2);
+        w = innerWidth;
+        h = innerHeight;
+        cv.width = Math.round(w * dpr);
+        cv.height = Math.round(h * dpr);
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      };
+
+      const spawn = (n: number, vx: number, vy: number) => {
+        for (const e of pool) {
+          if (n <= 0) break;
+          if (e.life > 0) continue;
+          n--;
+          live++;
+          // Struck slightly behind the pointer, scattered, carrying a fifth of
+          // the hand's speed.
+          e.x = px + (Math.random() - 0.5) * 14;
+          e.y = py + (Math.random() - 0.5) * 14;
+          e.vx = vx * 0.18 + (Math.random() - 0.5) * 0.9;
+          e.vy = vy * 0.18 + (Math.random() - 0.5) * 0.9 - 0.35;
+          e.life = 1;
+          e.decay = 0.009 + Math.random() * 0.016;
+          e.r = 0.7 + Math.random() * 1.7;
+        }
+      };
+
+      const frame = () => {
+        raf = 0;
+        ctx.clearRect(0, 0, w, h);
+        live = 0;
+
+        for (const e of pool) {
+          if (e.life <= 0) continue;
+          live++;
+
+          e.life -= e.decay;
+          if (e.life <= 0) continue;
+
+          // Buoyancy and drag. An ember slows down and floats up; it does not
+          // fall, because what is being suggested is heat rather than debris.
+          e.vy -= 0.014;
+          e.vx *= 0.975;
+          e.vy *= 0.975;
+          e.x += e.vx;
+          e.y += e.vy;
+
+          // White at birth, accent in the middle, gone at the end. Two stops
+          // rather than a gradient object per particle.
+          ctx.globalAlpha = Math.min(1, e.life * 1.6) * 0.9;
+          ctx.fillStyle = e.life > 0.72 ? hot : warm;
+          ctx.beginPath();
+          ctx.arc(e.x, e.y, e.r * (0.35 + e.life * 0.65), 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.globalAlpha = 1;
+
+        // Nothing alive and nothing moving: stop. The next pointermove wakes it.
+        if (live > 0) raf = requestAnimationFrame(frame);
+      };
+
+      const wake = () => {
+        if (!raf) raf = requestAnimationFrame(frame);
+      };
+
+      size();
+      readColours();
+      addEventListener(
+        'resize',
+        () => {
+          size();
+          readColours();
+        },
+        { passive: true },
+      );
+
+      addEventListener(
+        'pointermove',
+        (e) => {
+          lx = px;
+          ly = py;
+          px = e.clientX;
+          py = e.clientY;
+          if (lx < -900) return; // first sample has no velocity to speak of
+          const dx = px - lx;
+          const dy = py - ly;
+          const speed = Math.hypot(dx, dy);
+          if (speed < 1.5) return;
+          // More off a faster hand, capped — a fling across a 4K display
+          // should not empty the pool in one frame.
+          spawn(Math.min(3, 1 + Math.floor(speed / 26)), dx, dy);
+          wake();
+        },
+        { passive: true },
+      );
+
+      // A press throws a small handful, which is the cheapest possible
+      // acknowledgement that something was clicked.
+      addEventListener(
+        'pointerdown',
+        () => {
+          if (px > -900) {
+            spawn(7, 0, 0);
+            wake();
+          }
+        },
+        { passive: true },
+      );
+
+      document.addEventListener('visibilitychange', () => {
+        if (document.hidden && raf) {
+          cancelAnimationFrame(raf);
+          raf = 0;
+        }
+      });
+    }
+  }
+</script>
+
+<style>
+  .embers {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    /* Under the cursor, over everything else. The cursor has to stay the
+       topmost thing on the page or it stops being a cursor. */
+    z-index: calc(var(--z-cursor) - 1);
+    pointer-events: none;
+    --ember-hot: var(--neon-hot);
+    --ember-warm: var(--neon);
+  }
+</style>

@@ -115,8 +115,30 @@
     document.addEventListener('pointerout', (e) => {
       if (!(e as PointerEvent).relatedTarget) delete root.dataset.on;
     });
-    document.addEventListener('pointerover', () => {
+
+    /*
+       COMING BACK.
+
+       Leaving the window hides the ring, which is right. Getting it back was
+       not: the only thing that restored it was `pointerover`, and clicking a
+       different tab or application does not fire one. A visitor who clicked
+       away and came back had no cursor at all until they happened to move the
+       mouse over a new element — the page looked broken, and clicking to fix
+       it did nothing, because a click is not a move.
+
+       So every route back is handled: the pointer re-entering, the window
+       regaining focus, the tab becoming visible again, and any press
+       anywhere. All four say the same thing — the pointer is over this
+       document, so draw it.
+    */
+    const back = () => {
       if (shown) root.dataset.on = '1';
+    };
+    document.addEventListener('pointerover', back);
+    addEventListener('focus', back);
+    addEventListener('pointerdown', back, { passive: true });
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) back();
     });
 
     // A scroll does not fire pointermove, so after scrolling under the cursor

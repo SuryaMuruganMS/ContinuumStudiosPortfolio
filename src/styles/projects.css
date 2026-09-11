@@ -14,10 +14,59 @@
   min-height: 100vh;
 }
 .room--projects {
-  /* The wash behind the dust: one low ellipse of the accent, so the top of the
-     page has somewhere for the flecks to be lit against. */
+  background: var(--ground);
+}
+
+/* ================================================================ the room
+   Three planes at three depths behind the content.
+
+   A single background gradient that slides with the pointer is a gradient
+   sliding. Three of them at different strengths is a room with a far wall, a
+   middle distance and something close to the glass — and the difference
+   between how far each one travels is the entire depth cue. `.par`,
+   `.par--mid` and `.par--far` live in shell.css and are shared.
+
+   All three are one composited layer each, painted once. Nothing here repaints
+   on scroll.
+*/
+.room__deep {
+  position: fixed;
+  inset: -12%;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.room__deep > span {
+  position: absolute;
+  inset: 0;
+  display: block;
+}
+/* Far: the ember glow the whole page sits in. */
+.room__glow {
   background:
-    radial-gradient(90% 46% at 28% -6%, var(--accent-soft) 0%, transparent 64%), var(--ground);
+    radial-gradient(58% 42% at 22% 4%, var(--halo-1) 0%, transparent 68%),
+    radial-gradient(46% 38% at 86% 62%, var(--halo-2) 0%, transparent 70%);
+}
+/* Middle: a drafting grid, barely there. It is the one thing on the page that
+   says this studio measures things. */
+.room__grid {
+  background-image:
+    linear-gradient(to right, var(--rule) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--rule) 1px, transparent 1px);
+  background-size: 96px 96px;
+  opacity: 0.5;
+  -webkit-mask-image: radial-gradient(70% 58% at 40% 30%, #000 0%, transparent 78%);
+  mask-image: radial-gradient(70% 58% at 40% 30%, #000 0%, transparent 78%);
+}
+/* Near: a single raking sheen, so the room has a light source. */
+.room__sheen {
+  background: linear-gradient(
+    104deg,
+    transparent 34%,
+    color-mix(in oklab, var(--accent) 5%, transparent) 50%,
+    transparent 64%
+  );
+  filter: blur(30px);
 }
 
 .pj {
@@ -194,23 +243,23 @@
   position: relative;
   display: block;
   /*
-     16:10, and the crop is chosen per image.
+     The image's own shape, passed in as `--ar`.
 
-     These are screenshots of websites, and `object-fit: cover` from the centre
-     shows the middle of a page — which is body copy, every time. Each frame
-     carries its own `object-position`, defaulting to the top edge, and the two
-     that are photographs rather than pages are centred instead. That is the
-     whole of the fix for "the images are cropped randomly": they were being
-     cropped consistently, from the wrong place.
+     This was a fixed 16:10 for every card, which is what "cropped randomly"
+     actually was: three screenshots at 2.30, 2.11 and 1.75 forced into one
+     1.60 box, so the widest lost a third of its width and the squarest lost
+     nearly half its height — cropped perfectly consistently, out of a frame
+     that fitted none of them. Now the frame is cut to the picture and
+     `object-fit: cover` has nothing left to do.
   */
-  aspect-ratio: 16 / 10;
-  overflow: hidden;
+  aspect-ratio: var(--ar, 1.75);
   border: 1px solid var(--rule);
-  border-radius: 16px;
   background: var(--surface);
   transition:
     border-color var(--d-ui) var(--ease-out),
-    box-shadow var(--d-ui) var(--ease-out);
+    box-shadow var(--d-ui) var(--ease-out),
+    border-radius 420ms var(--ease-glide),
+    transform 420ms var(--ease-glide);
 }
 .prj__img {
   position: absolute;
@@ -344,31 +393,6 @@
   font-size: 1.5rem;
   color: var(--accent);
   text-transform: none;
-}
-
-.prj__strata {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 5px 12px;
-}
-.prj__strata li {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  font-family: var(--f-mono);
-  font-size: 9.5px;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--ink-4);
-}
-.prj__strata li::before {
-  content: '';
-  width: 5px;
-  height: 5px;
-  background: var(--s);
 }
 
 .prj__acts {

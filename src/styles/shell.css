@@ -543,53 +543,103 @@
 }
 
 /* ==================================================================== flow
-   The shared vocabulary for anything that moves with the page.
+   The shared vocabulary for anything that moves with the page or the pointer.
 
-   `--vel` and `--velabs` are written to <html> by Fluid.astro, once per frame,
-   from one listener. Every rule below reads them. Nothing here measures
-   scrolling for itself, and nothing here animates a property that costs
-   layout: it is `transform`, `opacity` and `filter` or it is not in this file.
+   `--vel`, `--velabs`, `--mx` and `--my` are written to <html> by Fluid.astro,
+   once per frame, from two listeners. Every rule below reads them. Nothing here
+   measures anything for itself, and nothing here animates a property that costs
+   layout.
 
-   Under reduced motion `--vel` is never written, so every calc resolves to
-   zero and each of these is an ordinary static rule. That is the fallback —
+   Under reduced motion none of the four is ever written, so every calc resolves
+   to zero and each of these is an ordinary static rule. That is the fallback —
    there is no second code path to keep in step. */
 :root {
   --vel: 0;
   --velabs: 0;
+  --mx: 0;
+  --my: 0;
 }
 
-/*
-   A plane that catches the motion.
+/* ------------------------------------------------------------------- sheet
+   A plane that behaves like a sheet rather than a card.
 
-   Perspective plus a velocity-driven rotateX is a flat rectangle leaning into
-   the direction of travel, which is what the eye reads as a sheet of something
-   heavy moving through liquid. The skew is a quarter of the lean and does the
-   rest: without it the card looks hinged, with it the whole thing flexes.
+   Three things at once, and the first is the one that matters:
 
-   Eleven degrees at the clamp, which only a trackpad fling reaches; an
-   ordinary scroll lands around three. Five was the first number and it was
-   mathematically present and visually absent. Twenty is a fairground ride and
-   gets old on the first scroll.
-*/
-.flow {
+     BOW    `border-radius: 50% / N%` on a clipped box curves its top and
+            bottom edges into arcs. At 4% it is a straight edge with a
+            suggestion in it; at 22% it is a sail. Driving N from scroll
+            velocity is a sheet bellying out as the page moves and flattening
+            when it stops — which is what the reference site gets from
+            deforming a WebGL mesh, at the cost of one property.
+
+     LEAN   perspective + rotateX, so the plane tips into the direction of
+            travel. On its own this was the first build and it was wrong: a
+            rectangle rotating is a rigid object.
+
+     SQUASH a little vertical compression at speed, because a sheet moving
+            through something thick does not keep its exact height. */
+.sheet {
+  --bow: calc(4% + var(--velabs) * 18%);
+  overflow: hidden;
+  border-radius: 50% / var(--bow);
+  transform: perspective(1200px) rotateX(calc(var(--vel) * -9deg))
+    skewY(calc(var(--vel) * 1.1deg)) scaleY(calc(1 - var(--velabs) * 0.05));
+  transform-origin: center;
+  will-change: transform, border-radius;
+  transition:
+    border-radius 420ms var(--ease-glide),
+    transform 420ms var(--ease-glide);
+}
+.fluid[data-moving] .sheet {
+  transition: none;
+}
+
+/* Media inside a sheet counter-scales, so the picture stays put while its
+   frame flexes. Without this the image looks painted onto the card. */
+.sheet__media {
+  transform: scale(calc(1.02 + var(--velabs) * 0.07));
+  transform-origin: center;
+  transition: transform 420ms var(--ease-glide);
+}
+.fluid[data-moving] .sheet__media {
+  transition: none;
+}
+
+/* ---------------------------------------------------------------- parallax
+   Depth from the pointer.
+
+   Three strengths rather than one: near things move most, far things barely
+   at all, and that difference IS the depth — a single layer sliding about is
+   just a layer sliding about. `translate3d` and `rotate3d` only, so the whole
+   stack stays on the compositor. */
+.par,
+.par--mid,
+.par--far {
+  will-change: transform;
+  transition: transform 700ms var(--ease-glide);
+}
+.par {
+  transform: translate3d(calc(var(--mx) * -26px), calc(var(--my) * -18px), 0);
+}
+.par--mid {
+  transform: translate3d(calc(var(--mx) * -14px), calc(var(--my) * -10px), 0);
+}
+.par--far {
+  transform: translate3d(calc(var(--mx) * -6px), calc(var(--my) * -4px), 0);
+}
+
+/* A whole room tilting. The scene rotates a degree and a half around its own
+   centre, which at this distance reads as the room having depth rather than
+   as the page being tipped. */
+.tilt {
+  perspective: 1400px;
+  perspective-origin: calc(50% + var(--mx) * 12%) calc(50% + var(--my) * 12%);
+}
+.tilt__inner {
+  transform: rotateY(calc(var(--mx) * 1.6deg)) rotateX(calc(var(--my) * -1.2deg));
   transform-style: preserve-3d;
   will-change: transform;
-  transition: transform 240ms var(--ease-glide);
-}
-.fluid[data-moving] .flow {
-  transform: perspective(1200px) rotateX(calc(var(--vel) * -11deg))
-    skewY(calc(var(--vel) * 1.5deg)) scale(calc(1 - var(--velabs) * 0.022));
-  transition: none;
-}
-
-/* Media inside a flowing plane gets the opposite treatment: it stays put while
-   its frame leans, which is what stops the picture looking painted on. */
-.flow__media {
-  transform: scale(calc(1 + var(--velabs) * 0.06));
-  transition: transform 320ms var(--ease-glide);
-}
-.fluid[data-moving] .flow__media {
-  transition: none;
+  transition: transform 700ms var(--ease-glide);
 }
 
 /* ------------------------------------------------------------------ reveal
@@ -597,12 +647,12 @@
    reads as surfacing rather than sliding. */
 [data-flow] {
   opacity: 0;
-  transform: translateY(38px);
-  filter: blur(10px);
+  transform: translateY(42px);
+  filter: blur(12px);
   transition:
-    opacity 720ms var(--ease-out),
-    transform 900ms var(--ease-glide),
-    filter 720ms var(--ease-out);
+    opacity 760ms var(--ease-out),
+    transform 980ms var(--ease-glide),
+    filter 760ms var(--ease-out);
   transition-delay: var(--delay, 0ms);
 }
 [data-flow][data-in] {
@@ -618,9 +668,17 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .flow,
-  .flow__media {
+  .sheet {
+    border-radius: 14px;
+  }
+  .sheet,
+  .sheet__media,
+  .par,
+  .par--mid,
+  .par--far,
+  .tilt__inner {
     transform: none !important;
+    transition: none;
   }
   [data-flow] {
     opacity: 1;

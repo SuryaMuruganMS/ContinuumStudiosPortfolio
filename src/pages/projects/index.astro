@@ -34,17 +34,22 @@ const work = (await getCollection('work')).sort((a, b) => a.data.order - b.data.
 
 const SECTORS = ['Government', 'Private', 'Software', 'Portfolio'] as const;
 const sectorsUsed = SECTORS.filter((s) => work.some((w) => w.data.sector === s));
-const strataUsed = [...new Set(work.flatMap((w) => w.data.strata.map((s) => s.id)))].sort();
 
 /**
- * The frames, and how each one is cropped.
+ * The frames, and their real shapes.
  *
- * These are screenshots of websites, and a website screenshot cropped from the
- * centre shows the middle of a page — which is body copy, every time. The
- * interesting part is the top, so `pos` is a CSS `object-position` per image
- * and it defaults to the top edge rather than the centre. Three of them are
- * different: Kestrel's hero is a full-bleed photograph and reads better
- * centred, and the two maps are square-ish crops whose subject is the middle.
+ * NOTHING IS CROPPED ANY MORE.
+ * Every one of these is a screenshot of a website and they are all different
+ * shapes — 2.30, 2.11, 1.75. Forcing them into one 16:10 frame meant the
+ * widest lost a third of its width and the squarest lost nearly half its
+ * height, which is what "cropped randomly" was: they were being cropped
+ * perfectly consistently, out of a frame that fitted none of them.
+ *
+ * So the frame takes each image's own ratio and `object-fit: cover` becomes a
+ * no-op. The hover frame is then chosen to sit within a few per cent of the
+ * rest frame, so the swap does not jump either — the pairs below differ by at
+ * most eight per cent, and where a better picture would have cost more than
+ * that it was not used.
  *
  * A presentation choice rather than content, so it stays out of the entry
  * frontmatter.
@@ -52,27 +57,24 @@ const strataUsed = [...new Set(work.flatMap((w) => w.data.strata.map((s) => s.id
 interface Frame {
   rest: string;
   hover?: string;
-  pos?: string;
-  hoverPos?: string;
+  /** Width over height of `rest`. The frame is cut to this exactly. */
+  ar: number;
 }
 const FRAMES: Record<string, Frame> = {
   istanmetro: {
     rest: '/work/istanmetro/01-hero-night.webp',
-    hover: '/work/istanmetro/04-map-world.webp',
-    pos: '50% 0%',
-    hoverPos: '50% 50%',
+    hover: '/work/istanmetro/03-crossed.webp',
+    ar: 2.3,
   },
   'kestrel-offshore': {
     rest: '/work/kestrel/00-hero-descent.webp',
     hover: '/work/kestrel/06-live-seabed.webp',
-    pos: '50% 30%',
-    hoverPos: '50% 50%',
+    ar: 2.11,
   },
   'axiom-dsf': {
     rest: '/work/axiom/06-live-console.webp',
-    hover: '/work/axiom/05-motion-runs.webp',
-    pos: '50% 0%',
-    hoverPos: '50% 0%',
+    hover: '/work/axiom/04-states-review-gate.webp',
+    ar: 1.75,
   },
   // roshan-portfolio deliberately has none: it is in progress, and a cover
   // would make an unfinished project look finished.
@@ -85,7 +87,16 @@ const count = (pred: (w: (typeof work)[number]) => boolean) => work.filter(pred)
   title="Projects — Continuum Studios"
   description="Four projects, taken apart. Filter by who the work was for, or by the layers it exposes."
 >
-  <div class="room room--projects">
+  <div class="room room--projects tilt">
+    {
+      /* Three planes at three depths, so moving the pointer moves the room
+        rather than sliding one gradient about. See `.par` in shell.css. */
+    }
+    <div class="room__deep" aria-hidden="true">
+      <span class="room__glow par--far"></span>
+      <span class="room__grid par--mid"></span>
+      <span class="room__sheen par"></span>
+    </div>
     <Dust density={64} />
 
     <section class="pj">
@@ -126,26 +137,6 @@ const count = (pred: (w: (typeof work)[number]) => boolean) => work.filter(pred)
           }
         </div>
 
-        <div class="fbar" role="group" aria-label="Filter by exposed layer">
-          <span class="fbar__k mono">Exposes a layer</span>
-          {
-            strataUsed.map((s) => (
-              <button
-                class="pill pill--s"
-                type="button"
-                data-f="stratum"
-                data-v={s}
-                aria-pressed="false"
-                style={`--s: var(--s-${s})`}
-              >
-                <i class="pill__dot" aria-hidden="true" />
-                {s}{' '}
-                <sup class="mono">{count((w) => w.data.strata.some((x) => x.id === s))}</sup>
-              </button>
-            ))
-          }
-        </div>
-
         <p class="pj__tally mono" data-tally aria-live="polite">
           Showing {work.length} of {work.length}
         </p>
@@ -156,36 +147,28 @@ const count = (pred: (w: (typeof work)[number]) => boolean) => work.filter(pred)
           work.map((w, i) => {
             const f = FRAMES[w.id];
             return (
-              <li
-                class="prow__item"
-                style={`--i:${i}`}
-                data-sector={w.data.sector}
-                data-strata={w.data.strata.map((s) => s.id).join('|')}
-                data-flow
-              >
+              <li class="prow__item" style={`--i:${i}`} data-sector={w.data.sector} data-flow>
                 <article class="prj">
                   {/* The media leads on odd rows and follows on even ones, so
                       the eye crosses the page rather than running down one
                       side of it. Order is set in CSS, not markup: the reading
                       order stays picture-then-words at every width. */}
-                  <a class="prj__media flow" href={`/work/${w.id}`} data-cursor="Open">
-                    <span class="prj__frame">
+                  <a class="prj__media par--mid" href={`/work/${w.id}`} data-cursor="Open">
+                    <span class="prj__frame sheet" style={`--ar:${f?.ar ?? 1.75}`}>
                       {f ? (
                         <>
                           <img
-                            class="prj__img flow__media"
+                            class="prj__img sheet__media"
                             src={f.rest}
                             alt=""
-                            style={`object-position:${f.pos ?? '50% 0%'}`}
                             loading={i === 0 ? 'eager' : 'lazy'}
                             decoding="async"
                           />
                           {f.hover && (
                             <img
-                              class="prj__img prj__img--hover flow__media"
+                              class="prj__img prj__img--hover sheet__media"
                               src={f.hover}
                               alt=""
-                              style={`object-position:${f.hoverPos ?? '50% 0%'}`}
                               loading="lazy"
                               decoding="async"
                             />
@@ -224,12 +207,6 @@ const count = (pred: (w: (typeof work)[number]) => boolean) => work.filter(pred)
                       )}
                     </dl>
 
-                    <ul class="prj__strata" aria-label="Layers exposed">
-                      {w.data.strata.map((s) => (
-                        <li style={`--s: var(--s-${s.id})`}>{s.id}</li>
-                      ))}
-                    </ul>
-
                     <p class="prj__acts">
                       <a class="prj__go" href={`/work/${w.id}`}>
                         <span>Take it apart</span>
@@ -255,7 +232,7 @@ const count = (pred: (w: (typeof work)[number]) => boolean) => work.filter(pred)
       </ol>
 
       <p class="pj__empty" data-empty hidden>
-        Nothing exposes that layer yet.
+        Nothing here yet.
         <button type="button" data-reset>Show all four</button>
       </p>
     </section>
@@ -274,25 +251,19 @@ const count = (pred: (w: (typeof work)[number]) => boolean) => work.filter(pred)
     const total = rows.length;
 
     /**
-     * One filter at a time, and "everything" is a filter.
+     * One sector at a time, and the empty string is "everything".
      *
-     * Multi-select was the first build and it was wrong: with four projects,
-     * any two conditions land on zero results, so the interface spent most of
-     * its life showing an empty state. One at a time always shows something,
-     * and the counts on the pills say what each one will give you before you
-     * press it.
+     * There were two filter rows — sector and exposed layer — and with four
+     * projects any two conditions land on zero, so the interface spent most of
+     * its life showing an empty state. The layer row is gone; it was the more
+     * interesting question and the wrong one to ask of four projects.
      */
-    let kind: 'all' | 'sector' | 'stratum' = 'all';
-    let value = '';
+    let sector = '';
 
     const apply = () => {
       let shown = 0;
       for (const row of rows) {
-        const on =
-          kind === 'all' ||
-          (kind === 'sector'
-            ? row.dataset.sector === value
-            : (row.dataset.strata ?? '').split('|').includes(value));
+        const on = !sector || row.dataset.sector === sector;
         if (on) shown++;
         row.toggleAttribute('data-out', !on);
       }
@@ -321,17 +292,14 @@ const count = (pred: (w: (typeof work)[number]) => boolean) => work.filter(pred)
     bar.addEventListener('click', (e) => {
       const pill = (e.target as HTMLElement).closest<HTMLButtonElement>('.pill');
       if (!pill) return;
-      const f = pill.dataset.f as typeof kind | undefined;
-      if (!f) return;
-      kind = f;
-      value = pill.dataset.v ?? '';
+      if (!pill.dataset.f) return;
+      sector = pill.dataset.v ?? '';
       paint(pill);
       apply();
     });
 
     document.querySelector('[data-reset]')?.addEventListener('click', () => {
-      kind = 'all';
-      value = '';
+      sector = '';
       paint(pills[0] ?? null);
       apply();
     });
