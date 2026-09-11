@@ -37,6 +37,16 @@ const work = defineCollection({
     problem: z.string(),
     disciplines: z.array(z.string()).min(1),
     /**
+     * Who the work is for, in the terms a visitor thinks in.
+     *
+     * The projects index used to filter by discipline, which sorts work the
+     * way a studio files it — "show me the cartography ones" is a question
+     * another designer asks. This sorts it the way somebody arriving asks:
+     * is this a public body, a private client, a product, a person. Four
+     * buckets, because a fifth would mean two of them had one project in.
+     */
+    sector: z.enum(['Government', 'Private', 'Software', 'Portfolio']),
+    /**
      * The fidelity ladder. Declared per project so the build knows whether to
      * load real DOM for the Live layer or a composited plane.
      */

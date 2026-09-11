@@ -8,6 +8,7 @@ import '../styles/shell.css';
 import Header from '../components/ui/Header.astro';
 import MenuOverlay from '../components/shell/MenuOverlay.astro';
 import Cursor from '../components/shell/Cursor.astro';
+import Fluid from '../components/shell/Fluid.astro';
 import Footer from '../components/ui/Footer.astro';
 import { SITE } from '../lib/site';
 
@@ -88,6 +89,7 @@ const canonical = new URL(Astro.url.pathname, Astro.site ?? SITE.url);
     <Header sticky={stickyHeader} />
     <MenuOverlay />
     <Cursor />
+    <Fluid />
 
     <main id="main">
       <slot />

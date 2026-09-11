@@ -12,7 +12,19 @@
    than a slow one.
    =========================================================================== */
 
-/* ------------------------------------------------------------------ header */
+/* ------------------------------------------------------------------ header
+   IT HAS A GROUND NOW.
+
+   The bar was transparent chrome over a scrolling page, which is the correct
+   look right up until a 100px headline passes under it and "Continuum" is
+   printed across the middle of a letter. A fixed element over arbitrary
+   content is unreadable by definition — the content is arbitrary.
+
+   So there is a scrim: a short gradient from the page's own ground, opaque at
+   the very top and gone by the bottom of the bar. It is `pointer-events: none`
+   and it costs one composited layer. The alternative — pushing every page down
+   by the header's height — gives the top of the site a permanent empty strip
+   and throws away the whole point of content passing underneath. */
 .site-head {
   position: absolute;
   inset-inline: 0;
@@ -23,7 +35,31 @@
 .site-head.is-sticky {
   position: fixed;
 }
+.site-head::before {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  top: 0;
+  height: calc(100% + 34px);
+  pointer-events: none;
+  background: linear-gradient(
+    to bottom,
+    var(--ground) 0%,
+    var(--ground) 38%,
+    color-mix(in oklab, var(--ground) 72%, transparent) 68%,
+    transparent 100%
+  );
+  /* Only once the page has actually moved: at the top of a page the bar is
+     sitting on its own ground already and a scrim there is a visible band. */
+  opacity: 0;
+  transition: opacity var(--d-page) var(--ease-out);
+}
+.fluid[data-scrolled] .site-head::before,
+.menu-open .site-head::before {
+  opacity: 1;
+}
 .site-head__inner {
+  position: relative;
   display: flex;
   align-items: center;
   gap: var(--sp-roomy);
@@ -33,13 +69,38 @@
   pointer-events: auto;
 }
 
+/*
+   The mark gets a ground of its own.
+
+   The scrim behind the bar handles most of it, but the top of this site is a
+   full-bleed photograph on three pages out of four, and a gradient dark enough
+   to guarantee a wordmark over a white sky is dark enough to be a visible band
+   over everything else. So the wordmark carries its own chip — the same pill
+   the sound and menu buttons wear, which makes the three of them read as one
+   set of controls rather than a logo and two buttons.
+*/
 .mark {
   display: inline-flex;
   align-items: center;
   gap: 9px;
+  padding: 6px 14px 6px 8px;
+  border: 1px solid transparent;
+  border-radius: var(--r-pill);
   text-decoration: none;
   color: var(--ink);
   margin-inline-end: auto;
+  transition:
+    background-color var(--d-ui) var(--ease-out),
+    border-color var(--d-ui) var(--ease-out);
+}
+.fluid[data-scrolled] .mark,
+.menu-open .mark {
+  background: color-mix(in oklab, var(--ground) 72%, transparent);
+  border-color: var(--rule);
+  backdrop-filter: blur(10px);
+}
+.mark:hover {
+  border-color: var(--accent);
 }
 .mark__img {
   width: 26px;
@@ -478,5 +539,93 @@
   }
   .menu__panel {
     width: 100%;
+  }
+}
+
+/* ==================================================================== flow
+   The shared vocabulary for anything that moves with the page.
+
+   `--vel` and `--velabs` are written to <html> by Fluid.astro, once per frame,
+   from one listener. Every rule below reads them. Nothing here measures
+   scrolling for itself, and nothing here animates a property that costs
+   layout: it is `transform`, `opacity` and `filter` or it is not in this file.
+
+   Under reduced motion `--vel` is never written, so every calc resolves to
+   zero and each of these is an ordinary static rule. That is the fallback —
+   there is no second code path to keep in step. */
+:root {
+  --vel: 0;
+  --velabs: 0;
+}
+
+/*
+   A plane that catches the motion.
+
+   Perspective plus a velocity-driven rotateX is a flat rectangle leaning into
+   the direction of travel, which is what the eye reads as a sheet of something
+   heavy moving through liquid. The skew is a quarter of the lean and does the
+   rest: without it the card looks hinged, with it the whole thing flexes.
+
+   Eleven degrees at the clamp, which only a trackpad fling reaches; an
+   ordinary scroll lands around three. Five was the first number and it was
+   mathematically present and visually absent. Twenty is a fairground ride and
+   gets old on the first scroll.
+*/
+.flow {
+  transform-style: preserve-3d;
+  will-change: transform;
+  transition: transform 240ms var(--ease-glide);
+}
+.fluid[data-moving] .flow {
+  transform: perspective(1200px) rotateX(calc(var(--vel) * -11deg))
+    skewY(calc(var(--vel) * 1.5deg)) scale(calc(1 - var(--velabs) * 0.022));
+  transition: none;
+}
+
+/* Media inside a flowing plane gets the opposite treatment: it stays put while
+   its frame leans, which is what stops the picture looking painted on. */
+.flow__media {
+  transform: scale(calc(1 + var(--velabs) * 0.06));
+  transition: transform 320ms var(--ease-glide);
+}
+.fluid[data-moving] .flow__media {
+  transition: none;
+}
+
+/* ------------------------------------------------------------------ reveal
+   One rise, once, when a section first arrives. The blur is the part that
+   reads as surfacing rather than sliding. */
+[data-flow] {
+  opacity: 0;
+  transform: translateY(38px);
+  filter: blur(10px);
+  transition:
+    opacity 720ms var(--ease-out),
+    transform 900ms var(--ease-glide),
+    filter 720ms var(--ease-out);
+  transition-delay: var(--delay, 0ms);
+}
+[data-flow][data-in] {
+  opacity: 1;
+  transform: none;
+  filter: none;
+}
+/* No script, no observer: show everything rather than hide everything. */
+.no-js [data-flow] {
+  opacity: 1;
+  transform: none;
+  filter: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .flow,
+  .flow__media {
+    transform: none !important;
+  }
+  [data-flow] {
+    opacity: 1;
+    transform: none;
+    filter: none;
+    transition: none;
   }
 }

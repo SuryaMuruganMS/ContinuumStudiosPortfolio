@@ -15,18 +15,24 @@
    the light palette is gone, `color-scheme` says `dark` and means it, and
    there is exactly one place a colour is defined.
 
-   THREE NEONS, ONE PER ROOM.
+   ONE NEON.
 
-   Black with three fluorescent colours turns into a fairground very quickly.
-   The rule that stops it: one neon leads per page and the others are only ever
-   allowed in as small accents.
+   It was three — green for projects, orange for contact, cyan for the system —
+   on the theory that one lead colour per room would stop black plus
+   fluorescence turning into a fairground. It did stop that. It also meant the
+   site had three identities, and a visitor moving from the work to the contact
+   page watched the whole palette change under them for no reason they could
+   name.
 
-       green    projects — the filter bar, the counts, the card hover
-       orange   contact  — the invitation, the reply, the warmth
-       cyan     system   — links, focus rings, the cursor, anything that is
-                          the same on every page
+   So: orange, and the ground it sits on. Everything that was cyan or green is
+   now a value of the same hue, which is a harder discipline and a better one —
+   what used to be signalled by changing colour is now signalled by changing
+   brightness, and the page has one voice instead of three.
 
-   A page that wants two leads is a page that has not decided what it is.
+   The stratum index below is the interesting case. Twelve layers used to carry
+   twelve hues; they now carry twelve steps of one, running from near-white
+   through amber to a deep ember. A reader still tells them apart at a glance,
+   and nothing on the page is a colour the rest of the site does not use.
    =========================================================================== */
 
 :root {
@@ -51,59 +57,58 @@
   --rule: #1b1c21;
   --rule-live: #2a2c33;
 
-  /* -------------------------------------------------------------- the neons
-     Raw values. Nothing outside this block should name a neon directly — use
-     the role tokens below, so a page can change its lead colour in one line. */
-  --neon-green: #c8ff3d;
-  --neon-orange: #ff5f1f;
-  --neon-cyan: #22e8ff;
-
-  /* Deeper cuts, for text that has to sit on a light fill rather than black. */
-  --neon-green-deep: #7fa800;
-  --neon-orange-deep: #c73c00;
-  --neon-cyan-deep: #0090a8;
-
-  /* Ten-per-cent washes, for a pill's ground or a card's hover state. */
-  --neon-green-soft: #1a2205;
-  --neon-orange-soft: #24100a;
-  --neon-cyan-soft: #06222a;
+  /* --------------------------------------------------------------- the neon
+     One hue, five values. `--neon` is the colour; the rest are it at
+     brightnesses the design actually needs, cut by hand rather than by
+     `color-mix` so each one is a decision and not an arithmetic accident. */
+  --neon: #ff6a1f;
+  --neon-hot: #ffa05c; /* hover, and type that has to lift off the ground */
+  --neon-deep: #c73c00; /* on a light fill */
+  --neon-ember: #7a2600; /* rules and edges that must not shout */
+  --neon-soft: #241009; /* a pill's ground, a card's hover wash */
 
   /* ---------------------------------------------------------------- roles
-     Cyan is the system colour, so it is the default accent. A page that
-     leads with another neon re-points these three on its own root element —
-     see `.room--projects` and `.room--contact` in rooms.css. */
-  --accent: var(--neon-cyan);
-  --accent-deep: var(--neon-cyan-deep);
-  --accent-soft: var(--neon-cyan-soft);
+     Everything on the site points at these three rather than at the hue, so
+     the whole palette is one line away from being something else entirely. */
+  --accent: var(--neon);
+  --accent-deep: var(--neon-deep);
+  --accent-soft: var(--neon-soft);
 
   /* The ink to print ON an accent fill. Every neon here is light enough that
      the answer is always the ground, which is worth stating once. */
   --ink-on-accent: var(--ground);
 
-  /* Semantic. Separate from the accents; never doubles as one. */
-  --ok: #48e08b;
-  --warn: #ffc24b;
-  --bad: #ff4d6d;
+  /*
+     Semantic, and the one place another hue is still allowed.
+
+     A success state that is the same colour as a hover state is not a state.
+     These three appear only on the Commission Desk and the machine vitals —
+     nowhere in the editorial pages — and they are muted so they read as
+     status rather than as decoration.
+  */
+  --ok: #3fbf7a;
+  --warn: #d9a03c;
+  --bad: #e0554f;
 
   /* ------------------------------------------------------- the stratum index
      Functional colour. Each layer of the deconstruction owns a hue and that
      hue appears nowhere that is not that layer. Re-cut for black: every one
      of these now has to hold at 12px on #050506, which the old light-theme
      values did not. */
-  --s-brief: #9aa0ad;
-  --s-structure: #4fc3f7;
-  --s-grid: var(--neon-cyan);
-  --s-type: #c08bff;
-  --s-colour: var(--neon-orange);
-  --s-depth: #8b9bff;
-  --s-motion: #ffc24b;
-  --s-live: var(--neon-green);
+  --s-brief: #f6e7dc;
+  --s-structure: #f2c9a4;
+  --s-grid: #eeb079;
+  --s-type: #ec9a55;
+  --s-colour: #ff6a1f;
+  --s-depth: #e0762c;
+  --s-motion: #ffa05c;
+  --s-live: #ffd2ac;
 
   /* Engineering strata, available per project. */
-  --s-states: #3ad6e6;
-  --s-data: #dd8bf0;
-  --s-load: #ffb84d;
-  --s-edge: #ff6b8a;
+  --s-states: #d98a4a;
+  --s-data: #c9682a;
+  --s-load: #ffbe86;
+  --s-edge: #a84a13;
 
   /* ------------------------------------------------------------------ type
      Switzer for everything that is read. Gambetta for everything that is
@@ -163,10 +168,10 @@
      On black, elevation is light rather than shadow: a panel is nearer
      because its edge catches a little of the accent, not because it casts
      something onto a ground that is already darker than any shadow. */
-  --halo-1: rgb(255 95 31 / 0.1);
-  --halo-2: rgb(34 232 255 / 0.09);
-  --glow-accent: 0 0 28px -6px rgb(34 232 255 / 0.5);
-  --glow-soft: 0 0 20px -8px rgb(200 255 61 / 0.4);
+  --halo-1: rgb(255 106 31 / 0.11);
+  --halo-2: rgb(255 160 92 / 0.07);
+  --glow-accent: 0 0 28px -6px rgb(255 106 31 / 0.5);
+  --glow-soft: 0 0 20px -8px rgb(255 160 92 / 0.35);
   --plate-glow: 0 0 0 1px rgb(255 255 255 / 0.05), 0 24px 60px -34px rgb(0 0 0 / 0.9);
 
   --border-hair: 1px solid var(--rule);

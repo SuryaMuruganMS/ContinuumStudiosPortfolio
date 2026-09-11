@@ -4,6 +4,7 @@ client: Continuum Studios
 year: 2026
 problem: A railway's most interesting fact is a shape — thirteen kilometres east, sixty metres down — and a page that scrolls downwards cannot show it.
 disciplines: [art direction, front-end, cartography, information design, localisation]
+sector: Government
 fidelity: live
 liveUrl: https://istanmetro.suryamuruganms40.workers.dev/
 featured: true

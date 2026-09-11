@@ -4,6 +4,7 @@ client: Continuum Studios
 year: 2026
 problem: A designer's portfolio has to argue for judgement, not just show output — and most of them show output.
 disciplines: [art direction, front-end, interaction design]
+sector: Portfolio
 fidelity: annotated
 featured: true
 order: 4

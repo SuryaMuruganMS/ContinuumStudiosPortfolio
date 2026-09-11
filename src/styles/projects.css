@@ -1,9 +1,12 @@
 /* ===========================================================================
    CONTINUUM — PROJECTS
    ---------------------------------------------------------------------------
-   The room leads with green. See the note at the top of tokens.css: one neon
-   per page, re-pointed at the role tokens so every control, rule and focus
-   ring on this page follows without knowing which colour it is wearing.
+   One project per row, full width, media on one side and the reasons on the
+   other. See the note at the top of the page component for why the two-column
+   grid came out.
+
+   Everything that moves here reads `--vel` from the shell. Nothing in this
+   file measures scrolling for itself.
    =========================================================================== */
 
 .room {
@@ -11,11 +14,8 @@
   min-height: 100vh;
 }
 .room--projects {
-  --accent: var(--neon-green);
-  --accent-deep: var(--neon-green-deep);
-  --accent-soft: var(--neon-green-soft);
-  /* The wash behind the dust: a single low ellipse of the lead colour, so the
-     top of the page has somewhere for the flecks to be lit against. */
+  /* The wash behind the dust: one low ellipse of the accent, so the top of the
+     page has somewhere for the flecks to be lit against. */
   background:
     radial-gradient(90% 46% at 28% -6%, var(--accent-soft) 0%, transparent 64%), var(--ground);
 }
@@ -40,8 +40,7 @@
      for the title: `ch` resolves against the element's own font-size, so 34
      characters of 17px body text is about 300px — and a 120px headline inside
      a 300px box broke "projects," across two lines mid-word. The measure
-     belongs on the paragraph, which is the only thing here being read as
-     prose.
+     belongs on the paragraph, which is the only thing here read as prose.
   */
   max-width: min(100%, 52rem);
   margin-bottom: var(--sp-loose);
@@ -78,8 +77,8 @@
   font-weight: 400;
   text-wrap: balance;
 }
-/* The two halves of the line are two faces, and the second is indented by a
-   character so the eye steps down rather than reading a block. */
+/* The two halves are two faces, and the second is indented by a character so
+   the eye steps down rather than reading a block. */
 .pj__title-a {
   display: block;
   font-family: var(--f-display);
@@ -108,7 +107,9 @@
   flex-direction: column;
   gap: var(--sp-snug);
   padding-block: var(--sp-roomy);
+  margin-bottom: clamp(48px, 8vh, 96px);
   border-top: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
 }
 .fbar {
   display: flex;
@@ -124,93 +125,94 @@
   width: 11rem;
   flex: none;
 }
-
 .pj__tally {
-  margin: 0 0 var(--sp-roomy);
+  margin: var(--sp-tight) 0 0;
   font-size: var(--t-label);
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--ink-4);
 }
 
-/* ------------------------------------------------------------------- grid
-   Two columns, and the right one starts lower.
+/* ==================================================================== rows
+   One project, the width of the page.
 
-   The offset is the whole reason a two-column grid of four things does not
-   read as a table. It is a translation rather than a margin so it costs
-   nothing to undo at narrow widths and never affects the height of the page.
+   The media and the side swap sides on alternate rows, so the eye crosses the
+   page rather than running down one edge of it. The swap is `order` in CSS
+   rather than a different markup order: a screen reader and a keyboard always
+   get picture-then-words, four times, in the same shape.
 */
-.pgrid {
+.prow {
   list-style: none;
   margin: 0;
   padding: 0;
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: clamp(40px, 6vw, 96px) clamp(24px, 4vw, 64px);
-}
-.pgrid > :nth-child(even) {
-  transform: translateY(clamp(32px, 7vw, 110px));
-}
-/* One result left: the offset would strand it halfway down an empty column. */
-.pgrid[data-thin] {
-  grid-template-columns: minmax(0, 34rem);
-}
-.pgrid[data-thin] > * {
-  transform: none;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(72px, 12vh, 168px);
 }
 
 /*
    Leaving and arriving.
 
-   `data-out` is set by the filter before anything is hidden, so a card that is
-   going away has a frame to fall back and blur in. It is removed from the
-   layout only by `position: absolute` at the end of the transition — never by
-   `display: none`, which would snap the remaining cards into place while the
-   departing one was still visibly on screen.
+   `data-out` is set by the filter before anything is hidden, so a row that is
+   going away has a frame to fall back and blur in. It leaves the layout only
+   at the end of that transition — never by `display: none`, which would snap
+   the remaining rows up while the departing one was still on screen.
 */
-.pgrid__cell {
+.prow__item {
   transition:
     opacity var(--d-ui) var(--ease-out),
     filter var(--d-ui) var(--ease-out),
     transform var(--d-strat) var(--ease-glide);
-  transition-delay: calc(var(--i, 0) * 55ms);
+  transition-delay: calc(var(--i, 0) * 70ms);
 }
-.pgrid__cell[data-out] {
+.prow__item[data-out] {
   opacity: 0;
-  filter: blur(14px);
-  transform: translateY(18px) scale(0.97);
+  filter: blur(16px);
+  transform: translateY(22px) scale(0.985);
   pointer-events: none;
   position: absolute;
   visibility: hidden;
   transition-delay: 0ms;
 }
 
-/* ------------------------------------------------------------------- card */
-.pcard {
-  display: flex;
-  flex-direction: column;
-  gap: var(--sp-snug);
+.prj {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+  gap: clamp(24px, 4vw, 72px);
+  align-items: center;
 }
-.pcard__hit {
-  display: flex;
-  flex-direction: column;
-  gap: var(--sp-snug);
+.prow__item:nth-child(even) .prj__media {
+  order: 2;
+}
+
+/* ------------------------------------------------------------------ media */
+.prj__media {
+  display: block;
   text-decoration: none;
-  color: inherit;
 }
-.pcard__frame {
+.prj__frame {
   position: relative;
   display: block;
+  /*
+     16:10, and the crop is chosen per image.
+
+     These are screenshots of websites, and `object-fit: cover` from the centre
+     shows the middle of a page — which is body copy, every time. Each frame
+     carries its own `object-position`, defaulting to the top edge, and the two
+     that are photographs rather than pages are centred instead. That is the
+     whole of the fix for "the images are cropped randomly": they were being
+     cropped consistently, from the wrong place.
+  */
   aspect-ratio: 16 / 10;
   overflow: hidden;
   border: 1px solid var(--rule);
-  border-radius: 14px;
+  border-radius: 16px;
   background: var(--surface);
   transition:
     border-color var(--d-ui) var(--ease-out),
     box-shadow var(--d-ui) var(--ease-out);
 }
-.pcard__img {
+.prj__img {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -220,10 +222,10 @@
     transform var(--d-reveal) var(--ease-glide),
     opacity var(--d-page) var(--ease-out);
 }
-.pcard__img--hover {
+.prj__img--hover {
   opacity: 0;
 }
-.pcard__none {
+.prj__none {
   position: absolute;
   inset: 0;
   display: grid;
@@ -233,21 +235,11 @@
   text-transform: uppercase;
   color: var(--ink-4);
 }
-.pcard__idx {
-  position: absolute;
-  top: 12px;
-  inset-inline-start: 14px;
-  z-index: 2;
-  font-size: var(--t-label);
-  letter-spacing: 0.12em;
-  color: var(--ink);
-  mix-blend-mode: difference;
-}
 
-/* A single bar of the lead colour that crosses the frame on hover. It is the
-   cheapest possible "this is a link" and it reads as a scanner rather than as
-   a highlight, which suits a site about looking inside things. */
-.pcard__sweep {
+/* A single bar of the accent crossing the frame on hover: the cheapest
+   possible "this is a link", and it reads as a scanner rather than a
+   highlight, which suits a site about looking inside things. */
+.prj__sweep {
   position: absolute;
   inset-inline: 0;
   top: 0;
@@ -261,66 +253,108 @@
     transform var(--d-reveal) var(--ease-glide);
 }
 
-.pcard__hit:hover .pcard__frame,
-.pcard__hit:focus-visible .pcard__frame {
+.prj__media:hover .prj__frame,
+.prj__media:focus-visible .prj__frame {
   border-color: color-mix(in oklab, var(--accent) 55%, var(--rule));
-  box-shadow: 0 0 0 1px color-mix(in oklab, var(--accent) 22%, transparent);
+  box-shadow: 0 0 0 1px color-mix(in oklab, var(--accent) 20%, transparent);
 }
-.pcard__hit:hover .pcard__img--rest,
-.pcard__hit:focus-visible .pcard__img--rest {
-  transform: scale(1.04);
-  opacity: 0;
+.prj__media:hover .prj__img,
+.prj__media:focus-visible .prj__img {
+  transform: scale(1.03);
 }
-.pcard__hit:hover .pcard__img--hover,
-.pcard__hit:focus-visible .pcard__img--hover {
-  opacity: 1;
-  transform: scale(1.04);
-}
-/* A card with only one frame still answers: it just scales. */
-.pcard__hit:hover .pcard__frame:not(:has(.pcard__img--hover)) .pcard__img--rest,
-.pcard__hit:focus-visible .pcard__frame:not(:has(.pcard__img--hover)) .pcard__img--rest {
+.prj__media:hover .prj__img--hover,
+.prj__media:focus-visible .prj__img--hover {
   opacity: 1;
 }
-.pcard__hit:hover .pcard__sweep,
-.pcard__hit:focus-visible .pcard__sweep {
+.prj__media:hover .prj__sweep,
+.prj__media:focus-visible .prj__sweep {
   opacity: 1;
-  transform: translateY(clamp(140px, 24vw, 320px));
+  transform: translateY(clamp(200px, 30vw, 460px));
 }
 
-.pcard__meta {
+/* ------------------------------------------------------------------- side */
+.prj__side {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-base);
+  max-width: 42ch;
+}
+.prj__idx {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-snug);
+  margin: 0;
+  font-size: var(--t-label);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-4);
+}
+.prj__sector {
+  padding: 3px 9px;
+  border: 1px solid var(--neon-ember);
+  border-radius: var(--r-pill);
+  color: var(--accent);
+}
+.prj__title {
+  margin: 0;
+  font-family: var(--f-display);
+  font-size: clamp(2rem, 4vw, 3.2rem);
+  font-weight: 400;
+  line-height: 1.02;
+  letter-spacing: -0.02em;
+}
+.prj__title a {
+  color: var(--ink);
+  text-decoration: none;
+  transition: color var(--d-hover) var(--ease-out);
+}
+.prj__title a:hover,
+.prj__title a:focus-visible {
+  color: var(--accent);
+}
+.prj__problem {
+  margin: 0;
+  font-size: var(--t-body);
+  line-height: var(--lh-body);
+  color: var(--ink-2);
+}
+
+.prj__facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 9rem), 1fr));
+  gap: var(--sp-base);
+  margin: 0;
+  padding-top: var(--sp-base);
+  border-top: 1px solid var(--rule);
+}
+.prj__facts div {
   display: flex;
   flex-direction: column;
   gap: 3px;
 }
-.pcard__title {
+.prj__facts dd {
+  margin: 0;
+  font-size: var(--t-small);
+  line-height: var(--lh-tight);
+  color: var(--ink-2);
+  text-transform: capitalize;
+}
+.prj__facts dd.prj__fig {
   font-family: var(--f-display);
-  font-size: clamp(1.5rem, 2.6vw, 2.1rem);
-  font-weight: 400;
-  line-height: 1.1;
-  letter-spacing: -0.015em;
-  color: var(--ink);
-  transition: color var(--d-hover) var(--ease-out);
-}
-.pcard__hit:hover .pcard__title,
-.pcard__hit:focus-visible .pcard__title {
+  font-size: 1.5rem;
   color: var(--accent);
-}
-.pcard__line {
-  font-size: var(--t-label);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--ink-4);
+  text-transform: none;
 }
 
-.pcard__strata {
+.prj__strata {
   list-style: none;
   margin: 0;
   padding: 0;
   display: flex;
   flex-wrap: wrap;
-  gap: 5px 10px;
+  gap: 5px 12px;
 }
-.pcard__strata li {
+.prj__strata li {
   display: inline-flex;
   align-items: center;
   gap: 5px;
@@ -330,11 +364,56 @@
   text-transform: uppercase;
   color: var(--ink-4);
 }
-.pcard__strata li::before {
+.prj__strata li::before {
   content: '';
   width: 5px;
   height: 5px;
   background: var(--s);
+}
+
+.prj__acts {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--sp-roomy);
+  margin: 0;
+}
+.prj__go {
+  position: relative;
+  padding-bottom: 8px;
+  font-size: var(--t-body);
+  font-weight: 500;
+  color: var(--ink);
+  text-decoration: none;
+  transition: color var(--d-hover) var(--ease-out);
+}
+.prj__go-rule {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  height: 1px;
+  background: var(--rule-live);
+}
+.prj__go-rule::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--accent);
+  box-shadow: 0 0 16px -2px var(--accent);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform var(--d-page) var(--ease-glide);
+}
+.prj__go:hover,
+.prj__go:focus-visible {
+  color: var(--accent);
+}
+.prj__go:hover .prj__go-rule::after,
+.prj__go:focus-visible .prj__go-rule::after {
+  transform: scaleX(1);
+}
+.prj__live {
+  font-size: var(--t-small);
 }
 
 /* ------------------------------------------------------------------ empty */
@@ -354,12 +433,16 @@
 }
 
 /* ----------------------------------------------------------------- narrow */
-@media (max-width: 760px) {
-  .pgrid {
+@media (max-width: 900px) {
+  .prj {
     grid-template-columns: minmax(0, 1fr);
+    gap: var(--sp-roomy);
   }
-  .pgrid > :nth-child(even) {
-    transform: none;
+  .prow__item:nth-child(even) .prj__media {
+    order: 0;
+  }
+  .prj__side {
+    max-width: none;
   }
   .fbar__k {
     width: 100%;
@@ -367,13 +450,13 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .pgrid__cell,
-  .pcard__img,
-  .pcard__sweep {
+  .prow__item,
+  .prj__img,
+  .prj__sweep {
     transition-duration: 1ms;
     transition-delay: 0ms;
   }
-  .pcard__hit:hover .pcard__sweep {
+  .prj__media:hover .prj__sweep {
     display: none;
   }
 }

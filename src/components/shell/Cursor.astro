@@ -89,13 +89,50 @@
       { passive: true },
     );
 
-    // Leaving the window entirely: the ring should not be parked at the edge
-    // waiting. Pressing: a small, immediate squeeze, which is the one part of
-    // this that must not be smoothed.
+    // Pressing: a small, immediate squeeze, which is the one part of this that
+    // must not be smoothed.
     addEventListener('pointerdown', () => (root.dataset.press = '1'), { passive: true });
     addEventListener('pointerup', () => delete root.dataset.press, { passive: true });
-    document.addEventListener('pointerleave', () => delete root.dataset.on);
-    addEventListener('blur', () => delete root.dataset.on);
+
+    /*
+       WHY THIS IS NOT `pointerleave` ANY MORE.
+
+       It was, and the cursor kept vanishing mid-page. `pointerleave` on the
+       document fires whenever the pointer enters a node that is not a
+       descendant of the current target — which, with a fixed canvas, a grain
+       layer and a header all stacked over the content, happens constantly
+       while moving normally across the page. The cursor was correctly
+       responding to an event that did not mean what it looked like it meant.
+
+       `pointerout` with no `relatedTarget` is the real "left the window"
+       signal: the pointer went somewhere that is not an element in this
+       document. Everything else re-shows it.
+
+       Window blur no longer hides it either. Alt-tabbing away and back left a
+       visitor with no cursor at all until they happened to move the mouse,
+       and a page with no cursor looks broken rather than subtle.
+    */
+    document.addEventListener('pointerout', (e) => {
+      if (!(e as PointerEvent).relatedTarget) delete root.dataset.on;
+    });
+    document.addEventListener('pointerover', () => {
+      if (shown) root.dataset.on = '1';
+    });
+
+    // A scroll does not fire pointermove, so after scrolling under the cursor
+    // the ring is sitting over something new and says the wrong thing. Nothing
+    // reports that but the scroll itself.
+    addEventListener(
+      'scroll',
+      () => {
+        const hit = document.elementFromPoint(tx, ty)?.closest?.(HOT) ?? null;
+        const word = hit?.getAttribute('data-cursor') ?? '';
+        if (label.textContent !== word) label.textContent = word;
+        const state = hit ? (word ? 'word' : 'hot') : '';
+        if (root.dataset.state !== state) root.dataset.state = state;
+      },
+      { passive: true },
+    );
 
     addEventListener('pagehide', () => cancelAnimationFrame(raf));
   }

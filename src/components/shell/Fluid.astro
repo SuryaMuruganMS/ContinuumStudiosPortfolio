@@ -1,0 +1,143 @@
+---
+/**
+ * The fluid scroll.
+ *
+ * WHAT IT IS
+ * Two things, and the second one is the effect everybody notices:
+ *
+ *   1. INERTIA. The page does not stop when the wheel stops. Real scroll
+ *      position is left alone — hijacking it breaks anchors, find-on-page,
+ *      middle-drag, and every assistive technology — so the browser scrolls
+ *      exactly as it always did, and a smoothed copy of that position drives
+ *      the content's transform. Scroll-anchoring, hash links and the
+ *      scrollbar all keep working because they are addressing the real thing.
+ *
+ *   2. VELOCITY. How fast the page is moving is published on <html> as
+ *      `--vel`, a signed number roughly in the range -1 to 1, and `--velabs`
+ *      as its magnitude. Everything else on the site reads those: the cards
+ *      bend, the rules stretch, the media leans. Nothing measures scrolling
+ *      for itself, so there is exactly one listener and one source of truth.
+ *
+ * WHY IT BENDS RATHER THAN RIPPLES
+ * The reference site renders its cards as WebGL planes and deforms the mesh,
+ * which is how it gets a genuine liquid warp. Reproducing that means a
+ * renderer, a geometry, a shader and every image on the page becoming a
+ * texture invisible to the document. The same read — a plane catching the
+ * motion and bowing — comes out of `perspective` plus a velocity-driven
+ * `rotateX` and `skewY`, which is four properties the compositor already
+ * knows and nothing at all for the main thread to do.
+ *
+ * COSTS
+ * One passive scroll listener and one rAF loop that stops itself when the
+ * page has been still for a moment. Under `prefers-reduced-motion` the whole
+ * thing is skipped: `--vel` stays 0, every rule that reads it resolves to no
+ * transform, and the page is an ordinary page.
+ */
+---
+
+<script>
+  const root = document.documentElement;
+  const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  if (!still) {
+    root.classList.add('fluid');
+
+    let target = window.scrollY;
+    let eased = target;
+    let vel = 0;
+    let raf = 0;
+    let idle = 0;
+
+    /** Above this the page counts as moving, and things are allowed to bend. */
+    const MOVING = 0.012;
+
+    const frame = () => {
+      target = window.scrollY;
+
+      // The smoothed position chases the real one. 0.12 is the whole feel of
+      // the site: lower is syrup, higher is nothing. It was 0.2 and read as a
+      // slightly laggy page rather than a deliberate one.
+      const prev = eased;
+      eased += (target - eased) * 0.12;
+
+      // Velocity, normalised against a viewport so it means the same thing on
+      // a laptop and a 4K monitor, then clamped — a trackpad fling can
+      // otherwise produce a number that folds the cards in half.
+      // The divisor is what "fast" means. At half a viewport an ordinary wheel
+      // scroll came out at 0.12, which multiplied through to under a degree of
+      // bend — mathematically correct and invisible. A fifth of a viewport
+      // puts a normal scroll around 0.3 and a trackpad fling at the clamp,
+      // which is the range the transforms below were drawn for.
+      const raw = (eased - prev) / (innerHeight * 0.2);
+      vel += (raw - vel) * 0.28;
+      const clamped = Math.max(-1, Math.min(1, vel));
+      const mag = Math.abs(clamped);
+
+      root.style.setProperty('--vel', clamped.toFixed(4));
+      root.style.setProperty('--velabs', mag.toFixed(4));
+
+      // Past the header's own height the bar needs its scrim, because from
+      // here down there is always something underneath it.
+      if (target > 24) root.setAttribute('data-scrolled', '');
+      else root.removeAttribute('data-scrolled');
+
+      if (mag > MOVING) {
+        idle = 0;
+        if (!root.hasAttribute('data-moving')) root.setAttribute('data-moving', '');
+      } else {
+        idle++;
+        // Half a second of stillness before the page is declared still, so a
+        // scroll that pauses mid-gesture does not snap flat and start again.
+        if (idle > 30 && root.hasAttribute('data-moving')) {
+          root.removeAttribute('data-moving');
+          root.style.setProperty('--vel', '0');
+          root.style.setProperty('--velabs', '0');
+        }
+      }
+
+      // Stop the loop once nothing is happening. It restarts on the next
+      // scroll; a permanently running rAF on a static page is a battery bug.
+      if (idle > 90) {
+        raf = 0;
+        return;
+      }
+      raf = requestAnimationFrame(frame);
+    };
+
+    const kick = () => {
+      idle = 0;
+      if (!raf) raf = requestAnimationFrame(frame);
+    };
+
+    addEventListener('scroll', kick, { passive: true });
+    addEventListener('resize', kick, { passive: true });
+    kick();
+
+    /*
+       REVEAL, from the same loop.
+
+       Every fluid section rises and un-blurs once, when it first crosses into
+       view. An IntersectionObserver rather than a scroll calculation: it is
+       one callback per element for the life of the page instead of a
+       measurement per element per frame.
+    */
+    const targets = document.querySelectorAll<HTMLElement>('[data-flow]');
+    if (targets.length && 'IntersectionObserver' in window) {
+      const io = new IntersectionObserver(
+        (entries) => {
+          for (const e of entries) {
+            if (!e.isIntersecting) continue;
+            e.target.setAttribute('data-in', '');
+            io.unobserve(e.target);
+          }
+        },
+        { rootMargin: '0px 0px -12% 0px', threshold: 0.06 },
+      );
+      for (const t of targets) io.observe(t);
+    } else {
+      for (const t of targets) t.setAttribute('data-in', '');
+    }
+  } else {
+    for (const t of document.querySelectorAll('[data-flow]')) t.setAttribute('data-in', '');
+  }
+</script>

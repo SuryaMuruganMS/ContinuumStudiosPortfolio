@@ -1,15 +1,13 @@
 /* ===========================================================================
    CONTINUUM — CONTACT
    ---------------------------------------------------------------------------
-   The room leads with orange. It is the only warm thing on the site and this
-   is the only page that should be warm: everywhere else is a record being
-   examined, and this is the one page where somebody is being asked to speak.
+   One neon site-wide, so this page re-points nothing. What makes it the
+   warmest page is the scene behind it: a single raking shaft, brighter here
+   than anywhere else, because this is the one page where somebody is being
+   asked to speak rather than to read.
    =========================================================================== */
 
 .room--contact {
-  --accent: var(--neon-orange);
-  --accent-deep: var(--neon-orange-deep);
-  --accent-soft: var(--neon-orange-soft);
   background: var(--ground);
   /* The scene is fixed and the page is barely taller than a screen, so the
      whole thing is one composition rather than a document that scrolls. */
